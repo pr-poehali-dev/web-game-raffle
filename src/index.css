@@ -91,11 +91,21 @@
 }
 
 @layer base {
+  :root {
+    --neon: 270 95% 65%;
+  }
   * {
     @apply border-border;
   }
 
   body {
     @apply bg-background text-foreground;
+    font-family: "Rubik", sans-serif;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
   }
 }
