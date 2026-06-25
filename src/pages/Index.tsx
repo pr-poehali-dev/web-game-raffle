@@ -1,55 +1,75 @@
-import { useState } from 'react';
-import Icon from '@/components/ui/icon';
-import FortuneWheel from '@/components/FortuneWheel';
-import { toast } from 'sonner';
+import { useState } from "react";
+import Icon from "@/components/ui/icon";
+import FortuneWheel from "@/components/FortuneWheel";
+import { toast } from "sonner";
 
-type Tab = 'profile' | 'game' | 'shop';
+type Tab = "profile" | "game" | "shop";
 
 const POPULAR_LOTS = [
-  { id: 1, name: 'Наушники TWS Pro', art: '184729301', price: 4990, emoji: '🎧' },
-  { id: 2, name: 'Умные часы X8', art: '209384712', price: 7490, emoji: '⌚' },
-  { id: 3, name: 'Рюкзак городской', art: '156023948', price: 2890, emoji: '🎒' },
-  { id: 4, name: 'Колонка JBL Mini', art: '198273645', price: 3590, emoji: '🔊' },
+  {
+    id: 1,
+    name: "Наушники TWS Pro",
+    art: "184729301",
+    price: 4990,
+    emoji: "🎧",
+  },
+  { id: 2, name: "Умные часы X8", art: "209384712", price: 7490, emoji: "⌚" },
+  {
+    id: 3,
+    name: "Рюкзак городской",
+    art: "156023948",
+    price: 2890,
+    emoji: "🎒",
+  },
+  {
+    id: 4,
+    name: "Колонка JBL Mini",
+    art: "198273645",
+    price: 3590,
+    emoji: "🔊",
+  },
 ];
 
 const NUMBERS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 0];
 
 const Index = () => {
-  const [tab, setTab] = useState<Tab>('game');
-  const [article, setArticle] = useState('');
-  const [activeLot, setActiveLot] = useState<typeof POPULAR_LOTS[0] | null>(null);
+  const [tab, setTab] = useState<Tab>("game");
+  const [article, setArticle] = useState("");
+  const [activeLot, setActiveLot] = useState<(typeof POPULAR_LOTS)[0] | null>(
+    null,
+  );
   const [prizeCost, setPrizeCost] = useState<number | null>(null);
   const [selected, setSelected] = useState<number | null>(null);
   const [spinning, setSpinning] = useState(false);
   const [rotation, setRotation] = useState(0);
   const [balance, setBalance] = useState(111050);
 
-  const pickLot = (lot: typeof POPULAR_LOTS[0]) => {
+  const pickLot = (lot: (typeof POPULAR_LOTS)[0]) => {
     setActiveLot(lot);
     setArticle(lot.art);
     setPrizeCost(null);
-    setTab('game');
+    setTab("game");
   };
 
   const calculate = () => {
     const lot = POPULAR_LOTS.find((l) => l.art === article) || activeLot;
     if (!lot) {
-      toast.error('Введите артикул или выберите лот');
+      toast.error("Введите артикул или выберите лот");
       return;
     }
     setActiveLot(lot);
     setPrizeCost(Math.round(lot.price / 10));
-    toast.success('Стоимость розыгрыша рассчитана!');
+    toast.success("Стоимость розыгрыша рассчитана!");
   };
 
   const startSpin = () => {
     if (selected === null) return;
     if (prizeCost === null) {
-      toast.error('Сначала нажмите «Проверить и рассчитать»');
+      toast.error("Сначала нажмите «Проверить и рассчитать»");
       return;
     }
     if (balance < prizeCost) {
-      toast.error('Недостаточно WCOIN');
+      toast.error("Недостаточно WCOIN");
       return;
     }
     setSpinning(true);
@@ -79,7 +99,9 @@ const Index = () => {
               R
             </div>
             <div>
-              <div className="font-bold text-sm leading-tight">bananet_support</div>
+              <div className="font-bold text-sm leading-tight">
+                bananet_support
+              </div>
               <span className="inline-block text-[10px] font-bold px-2 py-0.5 rounded-full bg-yellow-400 text-black mt-0.5">
                 3 LVL
               </span>
@@ -89,12 +111,14 @@ const Index = () => {
             <div className="w-5 h-5 rounded-full bg-yellow-400 text-black text-xs font-bold flex items-center justify-center">
               ₩
             </div>
-            <span className="font-bold text-sm">{balance.toLocaleString('ru')}</span>
+            <span className="font-bold text-sm">
+              {balance.toLocaleString("ru")}
+            </span>
           </div>
         </header>
 
         {/* ===== GAME ===== */}
-        {tab === 'game' && (
+        {tab === "game" && (
           <main className="px-4 pt-4 space-y-5 animate-fade-in">
             {/* Article input + product */}
             <div className="bg-white/5 rounded-2xl p-4 border border-white/10">
@@ -116,19 +140,21 @@ const Index = () => {
               {/* Product preview */}
               <div className="flex gap-3 items-center bg-black/30 rounded-xl p-3">
                 <div className="w-16 h-16 rounded-lg bg-white/10 flex items-center justify-center text-3xl shrink-0">
-                  {activeLot ? activeLot.emoji : '🛍️'}
+                  {activeLot ? activeLot.emoji : "🛍️"}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="font-semibold text-sm truncate">
-                    {activeLot ? activeLot.name : 'Товар не выбран'}
+                    {activeLot ? activeLot.name : "Товар не выбран"}
                   </div>
                   <div className="text-xs text-white/50">
-                    {activeLot ? `${activeLot.price.toLocaleString('ru')} ₽ на WB` : 'Выберите лот ниже'}
+                    {activeLot
+                      ? `${activeLot.price.toLocaleString("ru")} ₽ на WB`
+                      : "Выберите лот ниже"}
                   </div>
                 </div>
                 <button
                   disabled={!activeLot}
-                  onClick={() => toast('Переход на карточку товара WB')}
+                  onClick={() => toast("Переход на карточку товара WB")}
                   className="bg-pink-600 px-3 py-2 rounded-lg text-xs font-bold disabled:opacity-40 active:scale-95 transition-transform"
                 >
                   Посмотреть
@@ -137,16 +163,22 @@ const Index = () => {
 
               {/* Prize cost */}
               <div className="mt-3 flex items-center justify-between bg-gradient-to-r from-yellow-400/20 to-amber-500/10 rounded-xl px-4 py-3 border border-yellow-400/30">
-                <span className="text-sm text-white/70">Стоимость розыгрыша</span>
+                <span className="text-sm text-white/70">
+                  Стоимость розыгрыша
+                </span>
                 <span className="font-display font-bold text-xl text-yellow-400">
-                  {prizeCost !== null ? `${prizeCost.toLocaleString('ru')} ₩` : '—'}
+                  {prizeCost !== null
+                    ? `${prizeCost.toLocaleString("ru")} ₩`
+                    : "—"}
                 </span>
               </div>
             </div>
 
             {/* Number picker */}
             <div>
-              <div className="text-xs text-white/50 mb-2 text-center">Выберите сектор и крутите барабан</div>
+              <div className="text-xs text-white/50 mb-2 text-center">
+                Выберите сектор и крутите барабан
+              </div>
               <div className="grid grid-cols-5 gap-2">
                 {NUMBERS.map((n) => (
                   <button
@@ -154,8 +186,8 @@ const Index = () => {
                     onClick={() => setSelected(n)}
                     className={`aspect-square rounded-xl font-display font-bold text-lg transition-all ${
                       selected === n
-                        ? 'bg-gradient-to-br from-violet-500 to-fuchsia-600 scale-105 shadow-[0_0_15px_rgba(168,85,247,0.7)]'
-                        : 'bg-white/10 hover:bg-white/20'
+                        ? "bg-gradient-to-br from-violet-500 to-fuchsia-600 scale-105 shadow-[0_0_15px_rgba(168,85,247,0.7)]"
+                        : "bg-white/10 hover:bg-white/20"
                     }`}
                   >
                     {n}
@@ -166,12 +198,17 @@ const Index = () => {
 
             {/* Wheel */}
             <div className="py-2">
-              <FortuneWheel selected={selected} spinning={spinning} rotation={rotation} onStart={startSpin} />
+              <FortuneWheel
+                selected={selected}
+                spinning={spinning}
+                rotation={rotation}
+                onStart={startSpin}
+              />
             </div>
 
             {/* Booster */}
             <button
-              onClick={() => toast('Бустеры доступны в магазине')}
+              onClick={() => toast("Бустеры доступны в магазине")}
               className="w-full flex items-center justify-center gap-2 bg-green-500/20 border border-green-400/40 rounded-2xl py-3 font-bold text-green-300 active:scale-95 transition-transform"
             >
               <Icon name="Plus" size={18} /> Добавить бустер к игре
@@ -180,15 +217,34 @@ const Index = () => {
         )}
 
         {/* ===== PROFILE ===== */}
-        {tab === 'profile' && (
+        {tab === "profile" && (
           <main className="px-4 pt-4 space-y-3 animate-fade-in">
-            <h2 className="font-display text-2xl font-bold mb-1">Профиль</h2>
             {[
-              { icon: 'Wallet', title: 'Подключи свой кошелёк TON', sub: 'Привязка криптокошелька' },
-              { icon: 'Users', title: 'Приглашай друзей', sub: 'Реферальная программа +500 ₩' },
-              { icon: 'CalendarCheck', title: 'Ежедневный вход', sub: 'Бонус за активность' },
-              { icon: 'TrendingUp', title: 'Отслеживай свой рейтинг', sub: 'Таблица лидеров' },
-              { icon: 'ShoppingBag', title: 'Мои покупки и бонусы', sub: 'История выигрышей' },
+              {
+                icon: "Wallet",
+                title: "Подключи свой кошелёк TON",
+                sub: "Привязка криптокошелька",
+              },
+              {
+                icon: "Users",
+                title: "Приглашай друзей",
+                sub: "Реферальная программа +500 ₩",
+              },
+              {
+                icon: "CalendarCheck",
+                title: "Ежедневный вход",
+                sub: "Бонус за активность",
+              },
+              {
+                icon: "TrendingUp",
+                title: "Отслеживай свой рейтинг",
+                sub: "Таблица лидеров",
+              },
+              {
+                icon: "ShoppingBag",
+                title: "Мои покупки и бонусы",
+                sub: "История выигрышей",
+              },
             ].map((item, i) => (
               <button
                 key={i}
@@ -202,17 +258,26 @@ const Index = () => {
                   <div className="font-bold text-sm">{item.title}</div>
                   <div className="text-xs text-white/50">{item.sub}</div>
                 </div>
-                <Icon name="ChevronRight" size={18} className="ml-auto text-white/40" />
+                <Icon
+                  name="ChevronRight"
+                  size={18}
+                  className="ml-auto text-white/40"
+                />
               </button>
             ))}
 
             <div className="bg-white/5 rounded-2xl p-4 border border-white/10 mt-2">
               <div className="text-sm font-bold mb-2">История розыгрышей</div>
               {POPULAR_LOTS.slice(0, 3).map((l) => (
-                <div key={l.id} className="flex items-center gap-2 py-2 border-b border-white/5 last:border-0">
+                <div
+                  key={l.id}
+                  className="flex items-center gap-2 py-2 border-b border-white/5 last:border-0"
+                >
                   <span className="text-xl">{l.emoji}</span>
                   <span className="text-sm flex-1">{l.name}</span>
-                  <span className="text-xs text-white/40">{Math.round(l.price / 10)} ₩</span>
+                  <span className="text-xs text-white/40">
+                    {Math.round(l.price / 10)} ₩
+                  </span>
                 </div>
               ))}
             </div>
@@ -220,11 +285,13 @@ const Index = () => {
         )}
 
         {/* ===== SHOP ===== */}
-        {tab === 'shop' && (
+        {tab === "shop" && (
           <main className="px-4 pt-4 space-y-3 animate-fade-in">
             <h2 className="font-display text-2xl font-bold mb-1">Магазин</h2>
 
-            <div className="text-xs uppercase tracking-wider text-white/40 mt-2">Популярные лоты</div>
+            <div className="text-xs uppercase tracking-wider text-white/40 mt-2">
+              Популярные лоты
+            </div>
             <div className="grid grid-cols-2 gap-3">
               {POPULAR_LOTS.map((lot) => (
                 <button
@@ -235,8 +302,12 @@ const Index = () => {
                   <div className="aspect-square rounded-xl bg-white/10 flex items-center justify-center text-4xl mb-2">
                     {lot.emoji}
                   </div>
-                  <div className="font-semibold text-sm truncate">{lot.name}</div>
-                  <div className="text-xs text-white/50">{lot.price.toLocaleString('ru')} ₽</div>
+                  <div className="font-semibold text-sm truncate">
+                    {lot.name}
+                  </div>
+                  <div className="text-xs text-white/50">
+                    {lot.price.toLocaleString("ru")} ₽
+                  </div>
                   <div className="text-xs font-bold text-yellow-400 mt-1">
                     Розыгрыш: {Math.round(lot.price / 10)} ₩
                   </div>
@@ -244,12 +315,30 @@ const Index = () => {
               ))}
             </div>
 
-            <div className="text-xs uppercase tracking-wider text-white/40 mt-4">Прокачай игру</div>
+            <div className="text-xs uppercase tracking-wider text-white/40 mt-4">
+              Прокачай игру
+            </div>
             {[
-              { icon: 'ShoppingCart', title: 'WHEEL SHOP', sub: 'Прокачай удачу' },
-              { icon: 'Repeat', title: 'WHEEL конвертер', sub: 'Покупка и обмен валюты' },
-              { icon: 'Coins', title: 'Получай WCOIN', sub: 'Выполняй задания' },
-              { icon: 'BarChart3', title: 'Повысил уровень?', sub: 'Забирай бонусы' },
+              {
+                icon: "ShoppingCart",
+                title: "WHEEL SHOP",
+                sub: "Прокачай удачу",
+              },
+              {
+                icon: "Repeat",
+                title: "WHEEL конвертер",
+                sub: "Покупка и обмен валюты",
+              },
+              {
+                icon: "Coins",
+                title: "Получай WCOIN",
+                sub: "Выполняй задания",
+              },
+              {
+                icon: "BarChart3",
+                title: "Повысил уровень?",
+                sub: "Забирай бонусы",
+              },
             ].map((item, i) => (
               <button
                 key={i}
@@ -263,7 +352,11 @@ const Index = () => {
                   <div className="font-bold text-sm">{item.title}</div>
                   <div className="text-xs text-white/50">{item.sub}</div>
                 </div>
-                <Icon name="ChevronRight" size={18} className="ml-auto text-white/40" />
+                <Icon
+                  name="ChevronRight"
+                  size={18}
+                  className="ml-auto text-white/40"
+                />
               </button>
             ))}
           </main>
@@ -272,15 +365,15 @@ const Index = () => {
         {/* Bottom Nav */}
         <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-[#0d0d1a]/95 backdrop-blur-md border-t border-white/10 flex">
           {[
-            { id: 'profile' as Tab, icon: 'User', label: 'Профиль' },
-            { id: 'game' as Tab, icon: 'Disc3', label: 'Игра' },
-            { id: 'shop' as Tab, icon: 'Store', label: 'Магазин' },
+            { id: "profile" as Tab, icon: "User", label: "Профиль" },
+            { id: "game" as Tab, icon: "Disc3", label: "Игра" },
+            { id: "shop" as Tab, icon: "Store", label: "Магазин" },
           ].map((t) => (
             <button
               key={t.id}
               onClick={() => setTab(t.id)}
               className={`flex-1 flex flex-col items-center gap-1 py-3 transition-colors ${
-                tab === t.id ? 'text-violet-400' : 'text-white/40'
+                tab === t.id ? "text-violet-400" : "text-white/40"
               }`}
             >
               <Icon name={t.icon} size={22} />
