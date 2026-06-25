@@ -287,8 +287,6 @@ const Index = () => {
         {/* ===== SHOP ===== */}
         {tab === "shop" && (
           <main className="px-4 pt-4 space-y-3 animate-fade-in">
-            <h2 className="font-display text-2xl font-bold mb-1">Магазин</h2>
-
             <div className="text-xs uppercase tracking-wider text-white/40 mt-2">
               Популярные лоты
             </div>
