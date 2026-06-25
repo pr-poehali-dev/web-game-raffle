@@ -363,7 +363,7 @@ const Index = () => {
         {/* Bottom Nav */}
         <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-[#0d0d1a]/95 backdrop-blur-md border-t border-white/10 flex">
           {[
-            { id: "profile" as Tab, icon: "User", label: "Профиль" },
+            { id: "profile" as Tab, icon: "User", label },
             { id: "game" as Tab, icon: "Disc3", label: "Игра" },
             { id: "shop" as Tab, icon: "Store", label: "Магазин" },
           ].map((t) => (
