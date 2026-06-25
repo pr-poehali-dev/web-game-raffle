@@ -101,7 +101,7 @@ const Index = () => {
             <div>
               <div className="font-bold text-sm leading-tight">nickname</div>
               <span className="inline-block text-[10px] font-bold px-2 py-0.5 rounded-full bg-yellow-400 text-black mt-0.5">
-                3 LVL
+                1 LVL
               </span>
             </div>
           </div>
