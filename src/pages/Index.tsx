@@ -95,7 +95,7 @@ const Index = () => {
         {/* Header */}
         <header className="flex items-center justify-between px-4 py-3 sticky top-0 z-30 bg-[#0d0d1a]/90 backdrop-blur-md border-b border-white/10">
           <div className="flex items-center gap-2">
-            <div className="w-11 h-11 rounded-full bg-gradient-to-br from-violet-500 to-fuchsia-600 flex items-center justify-center font-display font-bold text-lg shadow-[0_0_15px_rgba(168,85,247,0.6)]">
+            <div className="w-11 h-11 rounded-full bg-gradient-to-br from-violet-500 to-fuchsia-600 flex items-center justify-center font-display font-bold 
               icon: "User",
             </div>
             <div>
