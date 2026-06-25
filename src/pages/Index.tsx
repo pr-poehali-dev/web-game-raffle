@@ -221,7 +221,7 @@ const Index = () => {
           <main className="px-4 pt-4 space-y-3 animate-fade-in">
             {[
               {
-                icon: "Wallet",
+                icon: "User",
                 title: "Профиль",
                 sub: "Данные игрока",
               },
