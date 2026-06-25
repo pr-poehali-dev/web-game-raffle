@@ -231,7 +231,7 @@ const Index = () => {
               {
                 icon: "Users",
                 title: "Приглашай друзей",
-                sub: "Реферальная программа +500 ₩",
+                sub: "Реферальная программа",
               },
               {
                 icon: "CalendarCheck",
@@ -240,13 +240,13 @@ const Index = () => {
               },
               {
                 icon: "TrendingUp",
-                title: "Отслеживай свой рейтинг",
-                sub: "Таблица лидеров",
+                title: "Таблица лидеров",
+                sub: "Отслеживай свой рейтинг",
               },
               {
                 icon: "ShoppingBag",
-                title: "Мои покупки и бонусы",
-                sub: "История выигрышей",
+                title: "Мои покупки",
+                sub: "Бустеры и прочие покупки",
               },
             ].map((item, i) => (
               <button
@@ -323,17 +323,17 @@ const Index = () => {
               {
                 icon: "ShoppingCart",
                 title: "WHEEL SHOP",
-                sub: "Прокачай удачу",
+                sub: "Прокачай свою удачу",
               },
               {
                 icon: "Repeat",
                 title: "WHEEL конвертер",
-                sub: "Покупка и обмен валюты",
+                sub: "Покупка игровой валюты",
               },
               {
                 icon: "Coins",
                 title: "Получай WCOIN",
-                sub: "Выполняй задания",
+                sub: "Доп. задания за вознаграждение",
               },
               {
                 icon: "BarChart3",
