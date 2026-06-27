@@ -335,11 +335,6 @@ const Index = () => {
                 title: "Получай WCOIN",
                 sub: "Доп. задания за вознаграждение",
               },
-              {
-                icon: "BarChart3",
-                title: "Повысил уровень?",
-                sub: "Забирай бонусы",
-              },
             ].map((item, i) => (
               <button
                 key={i}
