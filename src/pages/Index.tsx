@@ -98,13 +98,7 @@ const Index = () => {
             <div className="w-11 h-11 rounded-full bg-gradient-to-br from-violet-500 to-fuchsia-600 flex items-center justify-center font-display font-bold text-lg shadow-[0_0_15px_rgba(168,85,247,0.6)]">
               N
             </div>
-            <div>
-              <div className="font-bold text-sm leading-tight">nickname</div>
-              <span className="inline-block text-[10px] font-bold px-2 py-0.5 rounded-full bg-yellow-400 text-black mt-0.5">
-                1 LVL
-              </span>
-            </div>
-          </div>
+            /div>
           <div className="flex items-center gap-1.5 bg-white/10 px-3 py-1.5 rounded-full border border-yellow-400/40">
             <div className="w-5 h-5 rounded-full bg-yellow-400 text-black text-xs font-bold flex items-center justify-center">
               ₩
