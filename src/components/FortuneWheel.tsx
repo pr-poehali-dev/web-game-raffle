@@ -24,6 +24,7 @@ interface FortuneWheelProps {
   bonusRotation: number;
   onStart: () => void;
   onSelectSector: (n: number) => void;
+  onBooster: () => void;
 }
 
 const FortuneWheel = ({
@@ -33,13 +34,16 @@ const FortuneWheel = ({
   bonusRotation,
   onStart,
   onSelectSector,
+  onBooster,
 }: FortuneWheelProps) => {
-  const SEG = 36; // 360 / 10
-  const C = 150;
-  const R_OUTER = 144;
-  const R_BONUS_OUT = 90;
-  const R_BONUS_IN = 54;
-  const R_BTN = 46;
+  const SEG = 36;
+  const C = 155;        // центр SVG
+  const SIZE = 310;     // размер SVG и контейнера
+  const R_OUTER = 148;
+  const R_BONUS_OUT = 92;
+  const R_BONUS_IN = 56;
+  const R_BTN = 48;
+  const GOLD_PAD = 5;   // ширина золотого кольца
 
   const polar = (angleDeg: number, r: number) => {
     const rad = ((angleDeg - 90) * Math.PI) / 180;
@@ -65,37 +69,70 @@ const FortuneWheel = ({
 
   const midPos = (i: number, r: number) => polar(i * SEG + SEG / 2, r);
 
-  return (
-    <div className="relative select-none" style={{ width: 300, height: 300 }}>
+  // Стрелка: на краю сектора 1 — угол границы между сектором 0 и 1 = 36°
+  // Позиция на внешнем радиусе + золотое кольцо
+  const arrowAngleDeg = 36; // граница сектора 0/1
+  const arrowR = R_OUTER + GOLD_PAD + 2;
+  const arrowPos = polar(arrowAngleDeg, arrowR);
+  // Угол поворота стрелки: она должна смотреть к центру колеса
+  const arrowRotate = arrowAngleDeg; // от 12 часов
 
+  // Кнопка бустера: середина сектора 6 = 6*36 + 18 = 234°
+  const boosterAngleDeg = 234;
+  const boosterR = R_OUTER + GOLD_PAD + 14; // чуть дальше
+  const boosterPos = polar(boosterAngleDeg, boosterR);
+
+  return (
+    <div
+      className="relative select-none"
+      style={{ width: SIZE, height: SIZE }}
+    >
       {/* Gold outer ring */}
       <div
         className="absolute inset-0 rounded-full pointer-events-none"
         style={{
           background: 'linear-gradient(135deg,#FFD700 0%,#FFA000 50%,#FFD700 100%)',
-          padding: 5,
+          padding: GOLD_PAD,
         }}
       >
         <div className="w-full h-full rounded-full" style={{ background: '#0d47a1' }} />
       </div>
 
-      {/* Pointer — right */}
+      {/* POINTER — на краю сектора 1 (угол 36°) */}
       <div
         className="absolute z-30 pointer-events-none"
-        style={{ right: -4, top: '50%', transform: 'translateY(-50%)' }}
+        style={{
+          left: arrowPos.x,
+          top: arrowPos.y,
+          transform: `translate(-50%, -50%) rotate(${arrowRotate}deg)`,
+        }}
       >
+        {/* Треугольная стрелка, острием вниз (к центру колеса) */}
         <div style={{
           width: 0, height: 0,
-          borderTop: '13px solid transparent',
-          borderBottom: '13px solid transparent',
-          borderRight: '26px solid #e53935',
-          filter: 'drop-shadow(0 0 5px rgba(229,57,53,0.9))',
+          borderLeft: '12px solid transparent',
+          borderRight: '12px solid transparent',
+          borderTop: '24px solid #e53935',
+          filter: 'drop-shadow(0 0 6px rgba(229,57,53,0.9))',
         }} />
       </div>
 
+      {/* BOOSTER BUTTON — на краю сектора 6 (угол 234°) */}
+      <button
+        onClick={onBooster}
+        className="absolute z-30 w-11 h-11 rounded-full bg-green-500 border-4 border-red-500 flex items-center justify-center shadow-lg active:scale-95 transition-transform"
+        style={{
+          left: boosterPos.x,
+          top: boosterPos.y,
+          transform: 'translate(-50%, -50%)',
+        }}
+      >
+        <span className="text-white font-black text-xl leading-none">+</span>
+      </button>
+
       {/* MAIN WHEEL — rotates */}
       <svg
-        width={300} height={300} viewBox="0 0 300 300"
+        width={SIZE} height={SIZE} viewBox={`0 0 ${SIZE} ${SIZE}`}
         className="absolute inset-0 transition-transform duration-[4000ms] ease-out"
         style={{ transform: `rotate(${rotation}deg)` }}
       >
@@ -118,7 +155,7 @@ const FortuneWheel = ({
               <text
                 x={mid.x} y={mid.y}
                 fill={isSelected ? s.color : '#fff'}
-                fontSize={22} fontWeight={900}
+                fontSize={23} fontWeight={900}
                 fontFamily="Oswald,sans-serif"
                 textAnchor="middle" dominantBaseline="middle"
                 transform={`rotate(${angle} ${mid.x} ${mid.y})`}
@@ -129,15 +166,13 @@ const FortuneWheel = ({
             </g>
           );
         })}
-        {/* Ring border outer */}
         <circle cx={C} cy={C} r={R_OUTER} fill="none" stroke="#FFD700" strokeWidth={2.5} opacity={0.6} />
-        {/* Ring border inner separator */}
         <circle cx={C} cy={C} r={R_BONUS_OUT + 1} fill="none" stroke="#FFD700" strokeWidth={2.5} />
       </svg>
 
       {/* BONUS DRUM — rotates independently */}
       <svg
-        width={300} height={300} viewBox="0 0 300 300"
+        width={SIZE} height={SIZE} viewBox={`0 0 ${SIZE} ${SIZE}`}
         className="absolute inset-0 transition-transform duration-[3500ms] ease-out"
         style={{ transform: `rotate(${bonusRotation}deg)` }}
       >
@@ -171,7 +206,7 @@ const FortuneWheel = ({
         <circle cx={C} cy={C} r={R_BONUS_OUT} fill="none" stroke="#FFD700" strokeWidth={2} opacity={0.5} />
       </svg>
 
-      {/* CENTER START BUTTON — static */}
+      {/* CENTER START BUTTON */}
       <button
         onClick={onStart}
         disabled={spinning || selected === null}

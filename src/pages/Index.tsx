@@ -39,6 +39,7 @@ const Index = () => {
   const [rotation, setRotation] = useState(0);
   const [bonusRotation, setBonusRotation] = useState(0);
   const [balance, setBalance] = useState(111050);
+  const [showSettings, setShowSettings] = useState(false);
 
   const calculate = () => {
     const lot = POPULAR_LOTS.find((l) => l.art === article) || activeLot;
@@ -102,7 +103,6 @@ const Index = () => {
               bananet_support
             </div>
           </div>
-
           <div className="flex items-center gap-1.5 bg-[#1a3a6e]/80 border border-[#4a7acc]/50 rounded-xl px-3 py-1.5">
             <div className="w-5 h-5 coin-w text-[9px] shrink-0">W</div>
             <span className="font-bold text-sm">{balance.toLocaleString("ru")}</span>
@@ -114,79 +114,83 @@ const Index = () => {
 
           {/* ===== GAME ===== */}
           {tab === "game" && (
-            <div className="flex flex-col gap-2.5 h-full animate-fade-in">
+            <div className="flex flex-col gap-3 h-full animate-fade-in">
 
-              {/* Article input row */}
-              <div className="app-card-inner p-2.5 shrink-0">
-                <div className="flex gap-2 mb-2">
+              {/* Product block */}
+              <div className="app-card-inner p-3 shrink-0">
+                {/* Row 1: input + buttons */}
+                <div className="flex gap-2 mb-3">
                   <input
                     value={article}
                     onChange={(e) => setArticle(e.target.value)}
                     placeholder="Артикул товара WB"
-                    className="flex-1 bg-white/10 rounded-xl px-3 py-2 text-sm outline-none border border-white/20 focus:border-white/50 transition-colors placeholder:text-white/40"
+                    className="flex-1 bg-white/10 rounded-xl px-3 py-2.5 text-sm outline-none border border-white/20 focus:border-white/50 transition-colors placeholder:text-white/40"
                   />
                   <button
-                    onClick={() => toast("Переход на WB")}
-                    disabled={!activeLot}
-                    className="bg-[#c2185b] border border-[#e91e63]/60 px-3 rounded-xl text-xs font-bold disabled:opacity-40 active:scale-95 transition-transform whitespace-nowrap"
+                    onClick={() => setShowSettings(!showSettings)}
+                    className="w-10 h-10 app-card-inner rounded-xl flex items-center justify-center active:scale-95 transition-transform shrink-0"
                   >
-                    Посмотреть
-                  </button>
-                  <button
-                    onClick={calculate}
-                    className="bg-green-600 border border-green-400/60 px-3 rounded-xl text-xs font-bold active:scale-95 transition-transform whitespace-nowrap"
-                  >
-                    Рассчитать
+                    <Icon name="Settings" size={18} className="text-white/80" />
                   </button>
                 </div>
 
-                {/* Product + lots */}
-                <div className="flex gap-2 items-center">
-                  {/* Active lot preview */}
-                  <div className="flex items-center gap-2 flex-1 min-w-0">
-                    <div className="w-9 h-9 rounded-lg bg-white/10 flex items-center justify-center shrink-0">
-                      {activeLot
-                        ? <Icon name={activeLot.icon} size={18} className="text-white/80" />
-                        : <Icon name="Package" size={18} className="text-white/40" />
-                      }
+                {/* Settings panel */}
+                {showSettings && (
+                  <div className="mb-3 bg-white/5 rounded-xl p-2.5 text-xs text-white/70 space-y-2">
+                    <div className="font-bold text-white/90 mb-1">Настройки игры</div>
+                    <div className="flex justify-between"><span>Звук</span><span className="text-white/50">вкл</span></div>
+                    <div className="flex justify-between"><span>Вибрация</span><span className="text-white/50">вкл</span></div>
+                    <div className="flex justify-between"><span>Язык</span><span className="text-white/50">RU</span></div>
+                  </div>
+                )}
+
+                {/* Row 2: product preview */}
+                <div className="flex gap-3 items-center bg-black/20 rounded-xl p-2.5">
+                  <div className="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center shrink-0">
+                    {activeLot
+                      ? <Icon name={activeLot.icon} size={22} className="text-white/80" />
+                      : <Icon name="Package" size={22} className="text-white/30" />
+                    }
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-semibold truncate">
+                      {activeLot ? activeLot.name : "Товар не выбран"}
                     </div>
-                    <div className="min-w-0">
-                      <div className="text-xs font-semibold truncate text-white/90">
-                        {activeLot ? activeLot.name : "Товар не выбран"}
-                      </div>
-                      {prizeCost !== null && (
-                        <div className="text-xs text-yellow-300 font-bold">
-                          Розыгрыш: {prizeCost.toLocaleString("ru")} ₩
-                        </div>
-                      )}
+                    <div className="text-xs text-white/50 mt-0.5">
+                      {activeLot ? `${activeLot.price.toLocaleString("ru")} ₽ на WB` : "Выберите лот в магазине"}
                     </div>
                   </div>
+                  <button
+                    onClick={() => toast("Переход на WB")}
+                    disabled={!activeLot}
+                    className="bg-[#c2185b] border border-[#e91e63]/60 px-3 py-2 rounded-xl text-xs font-bold disabled:opacity-40 active:scale-95 transition-transform whitespace-nowrap shrink-0"
+                  >
+                    Посмотреть
+                  </button>
+                </div>
 
-                  {/* Popular lots inline */}
-                  <div className="flex gap-1 shrink-0">
-                    {POPULAR_LOTS.map((lot) => (
-                      <button
-                        key={lot.id}
-                        onClick={() => {
-                          setActiveLot(lot);
-                          setArticle(lot.art);
-                          setPrizeCost(Math.ceil(lot.price / 10));
-                        }}
-                        className={`w-9 h-9 rounded-lg flex items-center justify-center active:scale-95 transition-all ${
-                          activeLot?.id === lot.id
-                            ? "bg-yellow-400/30 border border-yellow-400"
-                            : "bg-white/10 border border-white/20"
-                        }`}
-                      >
-                        <Icon name={lot.icon} size={16} className={activeLot?.id === lot.id ? "text-yellow-300" : "text-white/70"} />
-                      </button>
-                    ))}
+                {/* Row 3: cost + calculate */}
+                <div className="flex items-center justify-between mt-2.5 bg-black/20 rounded-xl px-3 py-2.5">
+                  <span className="text-sm text-white/60">Стоимость розыгрыша</span>
+                  <div className="flex items-center gap-2">
+                    {prizeCost !== null && (
+                      <span className="font-display font-bold text-lg text-yellow-300">
+                        {prizeCost.toLocaleString("ru")} ₩
+                      </span>
+                    )}
+                    {prizeCost === null && <span className="text-white/30 text-sm">—</span>}
+                    <button
+                      onClick={calculate}
+                      className="bg-green-600 border border-green-400/60 px-3 py-1.5 rounded-xl text-xs font-bold active:scale-95 transition-transform whitespace-nowrap"
+                    >
+                      Рассчитать
+                    </button>
                   </div>
                 </div>
               </div>
 
-              {/* Fortune Wheel — fills remaining space */}
-              <div className="flex-1 flex items-center justify-center relative min-h-0">
+              {/* Fortune Wheel */}
+              <div className="flex-1 flex items-center justify-center min-h-0">
                 <FortuneWheel
                   selected={selected}
                   spinning={spinning}
@@ -194,23 +198,16 @@ const Index = () => {
                   bonusRotation={bonusRotation}
                   onStart={startSpin}
                   onSelectSector={setSelected}
+                  onBooster={() => toast("Выберите бустер в магазине")}
                 />
-
-                {/* Add booster button */}
-                <button
-                  onClick={() => toast("Выберите бустер в магазине")}
-                  className="absolute bottom-0 left-4 w-11 h-11 rounded-full bg-green-500 border-4 border-red-500 flex items-center justify-center shadow-lg active:scale-95 transition-transform z-20"
-                >
-                  <Icon name="Plus" size={20} className="text-white" />
-                </button>
-
-                {/* Selected hint */}
-                {selected !== null && (
-                  <div className="absolute bottom-0 right-4 bg-white/20 rounded-xl px-3 py-1.5 text-xs font-bold">
-                    Выбрано: <span className="text-yellow-300 text-sm">{selected}</span>
-                  </div>
-                )}
               </div>
+
+              {/* Selected hint */}
+              {selected !== null && (
+                <div className="shrink-0 text-center text-xs text-white/60 pb-1">
+                  Выбран сектор: <span className="text-yellow-300 font-bold text-sm">{selected}</span>
+                </div>
+              )}
             </div>
           )}
 
@@ -255,6 +252,34 @@ const Index = () => {
                   <Icon name="ChevronRight" size={18} className="text-white/50 shrink-0" />
                 </button>
               ))}
+
+              {/* Popular lots section */}
+              <div className="mt-2">
+                <div className="text-xs font-bold text-white/60 px-1 mb-2 uppercase tracking-wide">Популярные лоты</div>
+                <div className="grid grid-cols-2 gap-2">
+                  {POPULAR_LOTS.map((lot) => (
+                    <button
+                      key={lot.id}
+                      onClick={() => {
+                        setActiveLot(lot);
+                        setArticle(lot.art);
+                        setPrizeCost(Math.ceil(lot.price / 10));
+                        setTab("game");
+                        toast.success(`Выбран лот: ${lot.name}`);
+                      }}
+                      className="app-card-inner p-3 text-left active:scale-95 transition-transform"
+                    >
+                      <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center mb-2">
+                        <Icon name={lot.icon} size={20} className="text-white/80" />
+                      </div>
+                      <div className="text-xs font-semibold leading-tight line-clamp-2 mb-1">{lot.name}</div>
+                      <div className="text-[11px] text-yellow-300 font-bold">
+                        {Math.ceil(lot.price / 10).toLocaleString("ru")} ₩
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
             </div>
           )}
         </div>
@@ -264,8 +289,8 @@ const Index = () => {
           <div className="flex gap-2">
             {([
               { id: "profile" as Tab, icon: "User", label: "Профиль" },
-              { id: "game" as Tab, icon: "CircleDot", label: "Игра" },
-              { id: "shop" as Tab, icon: "ShoppingBag", label: "Магазин" },
+              { id: "game" as Tab, icon: "Disc3", label: "Игра" },
+              { id: "shop" as Tab, icon: "Store", label: "Магазин" },
             ]).map((t) => (
               <button
                 key={t.id}
