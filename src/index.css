@@ -6,76 +6,64 @@
   :root {
     --background: 0 0% 100%;
     --foreground: 222.2 84% 4.9%;
-
     --card: 0 0% 100%;
     --card-foreground: 222.2 84% 4.9%;
-
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
-
     --primary: 222.2 47.4% 11.2%;
     --primary-foreground: 210 40% 98%;
-
     --secondary: 210 40% 96.1%;
     --secondary-foreground: 222.2 47.4% 11.2%;
-
     --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
-
     --accent: 210 40% 96.1%;
     --accent-foreground: 222.2 47.4% 11.2%;
-
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
-
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
     --ring: 222.2 84% 4.9%;
-
     --radius: 0.5rem;
-
     --sidebar-background: 0 0% 98%;
-
     --sidebar-foreground: 240 5.3% 26.1%;
-
     --sidebar-primary: 240 5.9% 10%;
-
     --sidebar-primary-foreground: 0 0% 98%;
-
     --sidebar-accent: 240 4.8% 95.9%;
-
     --sidebar-accent-foreground: 240 5.9% 10%;
-
     --sidebar-border: 220 13% 91%;
-
     --sidebar-ring: 217.2 91.2% 59.8%;
+
+    /* App theme colors */
+    --app-bg: 214 72% 48%;
+    --app-bg-dark: 220 75% 32%;
+    --app-card: 214 65% 55%;
+    --app-card-border: 210 70% 70%;
+    --app-btn: 216 60% 45%;
+    --app-btn-border: 210 65% 60%;
+    --app-text: 0 0% 100%;
+    --app-text-muted: 210 60% 88%;
+    --app-gold: 45 100% 55%;
+    --app-coin-w: 45 95% 50%;
+    --app-coin-b: 210 80% 60%;
   }
 
   .dark {
     --background: 222.2 84% 4.9%;
     --foreground: 210 40% 98%;
-
     --card: 222.2 84% 4.9%;
     --card-foreground: 210 40% 98%;
-
     --popover: 222.2 84% 4.9%;
     --popover-foreground: 210 40% 98%;
-
     --primary: 210 40% 98%;
     --primary-foreground: 222.2 47.4% 11.2%;
-
     --secondary: 217.2 32.6% 17.5%;
     --secondary-foreground: 210 40% 98%;
-
     --muted: 217.2 32.6% 17.5%;
     --muted-foreground: 215 20.2% 65.1%;
-
     --accent: 217.2 32.6% 17.5%;
     --accent-foreground: 210 40% 98%;
-
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
-
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
     --ring: 212.7 26.8% 83.9%;
@@ -91,9 +79,6 @@
 }
 
 @layer base {
-  :root {
-    --neon: 270 95% 65%;
-  }
   * {
     @apply border-border;
   }
@@ -107,5 +92,99 @@
 @layer utilities {
   .text-balance {
     text-wrap: balance;
+  }
+
+  .app-bg {
+    background: linear-gradient(
+      180deg,
+      hsl(214, 72%, 52%) 0%,
+      hsl(220, 75%, 38%) 100%
+    );
+    min-height: 100vh;
+  }
+
+  .app-card {
+    background: linear-gradient(
+      135deg,
+      hsl(214, 60%, 58%) 0%,
+      hsl(216, 65%, 50%) 100%
+    );
+    border: 1.5px solid hsl(210, 70%, 72%);
+    border-radius: 16px;
+  }
+
+  .app-card-inner {
+    background: linear-gradient(
+      135deg,
+      hsl(214, 55%, 52%) 0%,
+      hsl(218, 62%, 44%) 100%
+    );
+    border: 1.5px solid hsl(210, 65%, 65%);
+    border-radius: 12px;
+  }
+
+  .app-btn {
+    background: linear-gradient(
+      180deg,
+      hsl(216, 58%, 50%) 0%,
+      hsl(220, 65%, 40%) 100%
+    );
+    border: 1.5px solid hsl(210, 60%, 62%);
+    border-radius: 14px;
+    color: white;
+    font-weight: 700;
+  }
+
+  .app-btn:active {
+    transform: scale(0.97);
+  }
+
+  .app-btn-sm {
+    background: linear-gradient(
+      180deg,
+      hsl(216, 55%, 46%) 0%,
+      hsl(220, 62%, 37%) 100%
+    );
+    border: 1.5px solid hsl(210, 58%, 58%);
+    border-radius: 10px;
+    color: white;
+  }
+
+  .coin-w {
+    background: linear-gradient(135deg, #ffd700, #f0a000);
+    border-radius: 50%;
+    color: #7a4800;
+    font-weight: 900;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .coin-b {
+    background: linear-gradient(135deg, #5ba8ff, #2060c0);
+    border-radius: 50%;
+    color: white;
+    font-weight: 900;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .nav-tab-active {
+    background: linear-gradient(
+      180deg,
+      hsl(216, 58%, 50%) 0%,
+      hsl(220, 65%, 40%) 100%
+    );
+    border: 1.5px solid hsl(210, 60%, 65%);
+  }
+
+  .nav-tab-inactive {
+    background: linear-gradient(
+      180deg,
+      hsl(218, 55%, 42%) 0%,
+      hsl(222, 60%, 34%) 100%
+    );
+    border: 1.5px solid hsl(215, 55%, 52%);
   }
 }
