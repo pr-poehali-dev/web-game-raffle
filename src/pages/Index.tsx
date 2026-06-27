@@ -73,19 +73,14 @@ const PROFILE_BUTTONS = [
 ];
 
 const SHOP_BUTTONS = [
+  { icon: "List", title: "Популярные лоты", sub: "горячая подборка товаров" },
   { icon: "ShoppingBag", title: "WHEEL SHOP", sub: "прокачай удачу" },
   {
     icon: "ArrowLeftRight",
     title: "WHEEL конвертер",
-    sub: "покупка и обмен игровой валюты",
+    sub: "покупка игровой валюты",
   },
   { icon: "Coins", title: "Получай WCOIN", sub: "выполняя задания" },
-  { icon: "TrendingUp", title: "Повысил уровень?", sub: "Забирай бонусы!" },
-  {
-    icon: "Newspaper",
-    title: "WCOIN новости",
-    sub: "будь в курсе всех событий",
-  },
 ];
 
 const Index = () => {
