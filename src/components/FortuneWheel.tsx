@@ -138,7 +138,7 @@ const FortuneWheel = ({
           transform: "translate(-50%, -50%)",
         }}
       >
-        <span className="text-white font-black leading-none text-4xl">+</span>
+        <span className="font-black leading-none text-4xl text-[#ffffff]">+</span>
       </button>
 
       {/* MAIN WHEEL — rotates */}
