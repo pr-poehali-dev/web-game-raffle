@@ -131,14 +131,16 @@ const FortuneWheel = ({
       {/* BOOSTER BUTTON — на краю сектора 6 (угол 234°) */}
       <button
         onClick={onBooster}
-        className="absolute z-30 w-11 h-11 rounded-full bg-green-500 border-4 border-red-500 flex items-center justify-center shadow-lg active:scale-95 transition-transform"
+        className="absolute z-30 w-11 h-11 rounded-full bg-green-500 border-4 border-red-1000 flex items-center justify-center shadow-lg active:scale-95 transition-transform"
         style={{
           left: boosterPos.x,
           top: boosterPos.y,
           transform: "translate(-50%, -50%)",
         }}
       >
-        <span className="font-black leading-none text-4xl text-[#ffffff]">+</span>
+        <span className="font-black leading-none text-4xl text-[#ffffff]">
+          +
+        </span>
       </button>
 
       {/* MAIN WHEEL — rotates */}
