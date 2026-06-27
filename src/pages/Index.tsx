@@ -182,33 +182,12 @@ const Index = () => {
                     className="flex-1 bg-white/10 rounded-xl px-3 py-2.5 text-sm outline-none border border-white/20 focus:border-white/50 transition-colors placeholder:text-white/40"
                   />
                   <button
-                    onClick={() => setShowSettings(!showSettings)}
-                    className="w-10 h-10 app-card-inner rounded-xl flex items-center justify-center active:scale-95 transition-transform shrink-0"
+                    onClick={calculate}
+                    className="bg-green-600 border border-green-400/60 px-3 py-2.5 rounded-xl text-xs font-bold active:scale-95 transition-transform whitespace-nowrap shrink-0"
                   >
-                    <Icon name="Settings" size={18} className="text-white/80" />
+                    Рассчитать
                   </button>
                 </div>
-
-                {/* Settings panel */}
-                {showSettings && (
-                  <div className="mb-3 bg-white/5 rounded-xl p-2.5 text-xs text-white/70 space-y-2">
-                    <div className="font-bold text-white/90 mb-1">
-                      Настройки игры
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Звук</span>
-                      <span className="text-white/50">вкл</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Вибрация</span>
-                      <span className="text-white/50">вкл</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Язык</span>
-                      <span className="text-white/50">RU</span>
-                    </div>
-                  </div>
-                )}
 
                 {/* Row 2: product preview */}
                 <div className="flex gap-3 items-center bg-black/20 rounded-xl p-2.5">
@@ -246,7 +225,7 @@ const Index = () => {
                   </button>
                 </div>
 
-                {/* Row 3: cost + calculate */}
+                {/* Row 3: cost */}
                 <div className="flex items-center justify-between mt-2.5 bg-black/20 rounded-xl px-3 py-2.5">
                   <span className="text-sm text-white/60">
                     Стоимость розыгрыша
@@ -260,12 +239,6 @@ const Index = () => {
                     {prizeCost === null && (
                       <span className="text-white/30 text-sm">—</span>
                     )}
-                    <button
-                      onClick={calculate}
-                      className="bg-green-600 border border-green-400/60 px-3 py-1.5 rounded-xl text-xs font-bold active:scale-95 transition-transform whitespace-nowrap"
-                    >
-                      Рассчитать
-                    </button>
                   </div>
                 </div>
               </div>
