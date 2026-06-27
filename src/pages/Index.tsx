@@ -397,7 +397,7 @@ const Index = () => {
           <div className="flex gap-2">
             {[
               { id: "profile" as Tab, icon: "User", label: "Профиль" },
-              { id: "game" as Tab, icon: "Disc3", label: "Игра" },
+              { id: "game" as Tab, icon: "Aperture", label: "Игра" },
               { id: "shop" as Tab, icon: "Store", label: "Магазин" },
             ].map((t) => (
               <button
