@@ -152,10 +152,10 @@ const Index = () => {
         <header className="flex items-center justify-between px-4 pt-3 pb-2 shrink-0">
           <div className="flex items-center gap-2.5">
             <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#9b8ecf] to-[#7060b0] border-2 border-white/40 flex items-center justify-center font-display font-bold text-xl text-white shadow-lg shrink-0">
-              R
+              U
             </div>
             <div className="font-display font-black text-[15px] text-white drop-shadow-md leading-tight">
-              bananet_support
+              user_nickname
             </div>
           </div>
           <div className="flex items-center gap-1.5 bg-[#1a3a6e]/80 border border-[#4a7acc]/50 rounded-xl px-3 py-1.5">
