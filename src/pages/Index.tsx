@@ -3,43 +3,25 @@ import Icon from "@/components/ui/icon";
 import FortuneWheel from "@/components/FortuneWheel";
 import { toast } from "sonner";
 
+const WB_PRODUCT_URL = "https://functions.poehali.dev/c57573d7-b418-41d1-a1ea-735c2499505f";
+
 type Tab = "profile" | "game" | "shop";
 
-const POPULAR_LOTS: {
+type Lot = {
   id: number;
   name: string;
   art: string;
   price: number;
   icon: string;
-}[] = [
-  {
-    id: 1,
-    name: "Наушники TWS Pro",
-    art: "184729301",
-    price: 4990,
-    icon: "Headphones",
-  },
-  {
-    id: 2,
-    name: "Умные часы X8",
-    art: "209384712",
-    price: 7490,
-    icon: "Watch",
-  },
-  {
-    id: 3,
-    name: "Рюкзак городской",
-    art: "156023948",
-    price: 2890,
-    icon: "ShoppingBag",
-  },
-  {
-    id: 4,
-    name: "Колонка JBL Mini",
-    art: "198273645",
-    price: 3590,
-    icon: "Speaker",
-  },
+  isPopular: boolean;
+  wbUrl?: string;
+};
+
+const POPULAR_LOTS: Lot[] = [
+  { id: 1, name: "Наушники TWS Pro", art: "184729301", price: 4990, icon: "Headphones", isPopular: true },
+  { id: 2, name: "Умные часы X8", art: "209384712", price: 7490, icon: "Watch", isPopular: true },
+  { id: 3, name: "Рюкзак городской", art: "156023948", price: 2890, icon: "ShoppingBag", isPopular: true },
+  { id: 4, name: "Колонка JBL Mini", art: "198273645", price: 3590, icon: "Speaker", isPopular: true },
 ];
 
 const PROFILE_BUTTONS = [
@@ -86,26 +68,72 @@ const SHOP_BUTTONS = [
 const Index = () => {
   const [tab, setTab] = useState<Tab>("game");
   const [article, setArticle] = useState("");
-  const [activeLot, setActiveLot] = useState<(typeof POPULAR_LOTS)[0] | null>(
-    null,
-  );
+  const [manualPrice, setManualPrice] = useState("");
+  const [activeLot, setActiveLot] = useState<Lot | null>(null);
   const [prizeCost, setPrizeCost] = useState<number | null>(null);
   const [selected, setSelected] = useState<number | null>(null);
   const [spinning, setSpinning] = useState(false);
   const [rotation, setRotation] = useState(0);
   const [bonusRotation, setBonusRotation] = useState(0);
   const [balance, setBalance] = useState(111050);
-  const [showSettings, setShowSettings] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const calculate = () => {
-    const lot = POPULAR_LOTS.find((l) => l.art === article) || activeLot;
-    if (!lot) {
-      toast.error("Введите артикул или выберите лот");
+  const calculate = async () => {
+    const popularLot = POPULAR_LOTS.find((l) => l.art === article.trim());
+
+    if (popularLot) {
+      setActiveLot(popularLot);
+      const cost = Math.ceil(popularLot.price / 10);
+      setPrizeCost(cost);
+      toast.success("Стоимость розыгрыша рассчитана!");
       return;
     }
-    setActiveLot(lot);
-    setPrizeCost(Math.ceil(lot.price / 10));
-    toast.success("Стоимость розыгрыша рассчитана!");
+
+    if (activeLot?.isPopular) {
+      const cost = Math.ceil(activeLot.price / 10);
+      setPrizeCost(cost);
+      toast.success("Стоимость розыгрыша рассчитана!");
+      return;
+    }
+
+    const art = article.trim();
+    if (!art) {
+      toast.error("Введите артикул товара WB");
+      return;
+    }
+
+    const priceVal = parseFloat(manualPrice.replace(/\s/g, "").replace(",", "."));
+    if (!manualPrice || isNaN(priceVal) || priceVal <= 0) {
+      toast.error("Введите стоимость товара в рублях");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const res = await fetch(`${WB_PRODUCT_URL}?article=${art}`);
+      const data = await res.json();
+      if (!res.ok || data.error) {
+        toast.error(data.error || "Товар не найден");
+        return;
+      }
+      const lot: Lot = {
+        id: Date.now(),
+        name: data.name,
+        art,
+        price: priceVal,
+        icon: "Package",
+        isPopular: false,
+        wbUrl: data.url,
+      };
+      setActiveLot(lot);
+      const cost = Math.ceil((priceVal * 1.1) / 10);
+      setPrizeCost(cost);
+      toast.success("Товар найден, стоимость рассчитана!");
+    } catch {
+      toast.error("Ошибка при запросе к WB");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const startSpin = () => {
@@ -173,38 +201,49 @@ const Index = () => {
             <div className="flex flex-col gap-3 h-full animate-fade-in">
               {/* Product block */}
               <div className="app-card-inner p-3 shrink-0">
-                {/* Row 1: input + buttons */}
-                <div className="flex gap-2 mb-3">
+                {/* Row 1: article + calculate */}
+                <div className="flex gap-2 mb-2">
                   <input
                     value={article}
-                    onChange={(e) => setArticle(e.target.value)}
+                    onChange={(e) => {
+                      setArticle(e.target.value);
+                      setActiveLot(null);
+                      setPrizeCost(null);
+                      setManualPrice("");
+                    }}
                     placeholder="Артикул товара WB"
                     className="flex-1 bg-white/10 rounded-xl px-3 py-2.5 text-sm outline-none border border-white/20 focus:border-white/50 transition-colors placeholder:text-white/40"
                   />
                   <button
                     onClick={calculate}
-                    className="bg-green-600 border border-green-400/60 px-3 py-2.5 rounded-xl text-xs font-bold active:scale-95 transition-transform whitespace-nowrap shrink-0"
+                    disabled={loading}
+                    className="bg-green-600 border border-green-400/60 px-3 py-2.5 rounded-xl text-xs font-bold active:scale-95 transition-transform whitespace-nowrap shrink-0 disabled:opacity-60"
                   >
-                    Рассчитать
+                    {loading ? "..." : "Рассчитать"}
                   </button>
                 </div>
+
+                {/* Row 1b: manual price input (only for non-popular) */}
+                {article.trim() && !POPULAR_LOTS.find(l => l.art === article.trim()) && !activeLot?.isPopular && (
+                  <div className="mb-2">
+                    <input
+                      value={manualPrice}
+                      onChange={(e) => setManualPrice(e.target.value)}
+                      placeholder="Стоимость товара на WB (₽)"
+                      type="number"
+                      className="w-full bg-white/10 rounded-xl px-3 py-2.5 text-sm outline-none border border-white/20 focus:border-white/50 transition-colors placeholder:text-white/40"
+                    />
+                  </div>
+                )}
 
                 {/* Row 2: product preview */}
                 <div className="flex gap-3 items-center bg-black/20 rounded-xl p-2.5">
                   <div className="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center shrink-0">
-                    {activeLot ? (
-                      <Icon
-                        name={activeLot.icon}
-                        size={22}
-                        className="text-white/80"
-                      />
-                    ) : (
-                      <Icon
-                        name="Package"
-                        size={22}
-                        className="text-white/30"
-                      />
-                    )}
+                    <Icon
+                      name={activeLot ? activeLot.icon : "Package"}
+                      size={22}
+                      className={activeLot ? "text-white/80" : "text-white/30"}
+                    />
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="text-sm font-semibold truncate">
@@ -213,11 +252,14 @@ const Index = () => {
                     <div className="text-xs text-white/50 mt-0.5">
                       {activeLot
                         ? `${activeLot.price.toLocaleString("ru")} ₽ на WB`
-                        : "Выберите лот в магазине"}
+                        : "Введите артикул или выберите лот"}
                     </div>
                   </div>
                   <button
-                    onClick={() => toast("Переход на WB")}
+                    onClick={() => {
+                      const url = activeLot?.wbUrl || (activeLot ? `https://www.wildberries.ru/catalog/${activeLot.art}/detail.aspx` : null);
+                      if (url) window.open(url, "_blank");
+                    }}
                     disabled={!activeLot}
                     className="bg-[#c2185b] border border-[#e91e63]/60 px-3 py-2 rounded-xl text-xs font-bold disabled:opacity-40 active:scale-95 transition-transform whitespace-nowrap shrink-0"
                   >
@@ -231,12 +273,11 @@ const Index = () => {
                     Стоимость розыгрыша
                   </span>
                   <div className="flex items-center gap-2">
-                    {prizeCost !== null && (
+                    {prizeCost !== null ? (
                       <span className="font-display font-bold text-lg text-yellow-300">
                         {prizeCost.toLocaleString("ru")} ₩
                       </span>
-                    )}
-                    {prizeCost === null && (
+                    ) : (
                       <span className="text-white/30 text-sm">—</span>
                     )}
                   </div>
@@ -338,6 +379,7 @@ const Index = () => {
                       onClick={() => {
                         setActiveLot(lot);
                         setArticle(lot.art);
+                        setManualPrice("");
                         setPrizeCost(Math.ceil(lot.price / 10));
                         setTab("game");
                         toast.success(`Выбран лот: ${lot.name}`);
