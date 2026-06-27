@@ -76,7 +76,7 @@ const FortuneWheel = ({
 
   const midPos = (i: number, r: number) => polar(i * SEG + SEG / 2, r);
 
-  // Стрелка: середина сектора 1 — угол границы между сектором 0 и 1 = 36°+18 = 54°
+  // Стрелка: середина сектора 1 = 36°+18 = 54°
   // Позиция на внешнем радиусе + золотое кольцо
   const arrowAngleDeg = 36; // граница сектора 0/1
   const arrowR = R_OUTER + GOLD_PAD + 2;
