@@ -1,0 +1,13 @@
+{
+  "tests": [
+    {
+      "name": "Auth without initData returns demo player",
+      "method": "POST",
+      "path": "/",
+      "body": {},
+      "expectedStatus": 200,
+      "expectedBody": {"player": {}, "is_new": false},
+      "bodyMatcher": "partial"
+    }
+  ]
+}

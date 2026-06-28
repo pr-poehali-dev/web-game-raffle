@@ -13,19 +13,31 @@ type HistoryItem = {
   date: string;
 };
 
-type TgUser = {
-  name: string;
-  username: string;
-  avatarLetter: string;
+type Player = {
+  id: number;
+  tg_id: number;
+  username: string | null;
+  first_name: string;
+  last_name: string | null;
+  photo_url: string | null;
+  balance: number;
+  games_played: number;
+  games_won: number;
+  daily_streak: number;
+  daily_last_claimed: string | null;
+  city: string | null;
+  pvz_address: string | null;
 };
 
 interface ProfileScreenProps {
   balance: number;
   history: HistoryItem[];
-  tgUser: TgUser;
+  player: Player | null;
+  onPlayerUpdate: (p: Player) => void;
 }
 
 const DAILY_REWARDS = [10, 25, 50, 75, 100, 150, "🎁"];
+
 const LEADERS = [
   { place: 1, name: "WheelKing", balance: 98500, games: 312 },
   { place: 2, name: "LuckyOne", balance: 87200, games: 278 },
@@ -46,15 +58,28 @@ const BOOSTERS_SHOP = [
   { id: "bonusdrum", emoji: "🎁", name: "BonusDrum", owned: 1, max: 5 },
 ];
 
-const ProfileScreen = ({ balance, history, tgUser }: ProfileScreenProps) => {
+const ProfileScreen = ({ balance, history, player, onPlayerUpdate }: ProfileScreenProps) => {
   const [openSheet, setOpenSheet] = useState<string | null>(null);
-  const [dailyDay, setDailyDay] = useState(3);
-  const [dailyClaimed, setDailyClaimed] = useState(false);
-  const [profileData, setProfileData] = useState({ firstName: "", lastName: "", city: "", pvz: "" });
+  const [savingProfile, setSavingProfile] = useState(false);
+  const [profileData, setProfileData] = useState({
+    firstName: player?.first_name || "",
+    lastName: player?.last_name || "",
+    city: player?.city || "",
+    pvz: player?.pvz_address || "",
+  });
 
-  const gamesPlayed = history.length;
-  const gamesWon = history.filter((h) => h.won).length;
+  const gamesPlayed = player?.games_played ?? history.length;
+  const gamesWon = player?.games_won ?? history.filter((h) => h.won).length;
   const gamesLost = gamesPlayed - gamesWon;
+
+  const displayName = player
+    ? [player.first_name, player.last_name].filter(Boolean).join(" ")
+    : "Игрок";
+  const avatarLetter = player?.first_name?.[0]?.toUpperCase() || "?";
+
+  // Daily logic
+  const streak = player?.daily_streak ?? 0;
+  const claimedToday = player?.daily_last_claimed === new Date().toISOString().slice(0, 10);
 
   const PROFILE_ITEMS = [
     { id: "profile", icon: "User", title: "Профиль", sub: "Данные игрока" },
@@ -66,14 +91,23 @@ const ProfileScreen = ({ balance, history, tgUser }: ProfileScreenProps) => {
     { id: "history", icon: "Notebook", title: "История розыгрышей", sub: "Хронология событий игрока" },
   ];
 
-  const claimDaily = () => {
-    if (dailyClaimed) return;
-    setDailyClaimed(true);
-    const reward = DAILY_REWARDS[dailyDay - 1];
-    if (typeof reward === "number") {
-      toast.success(`+${reward} ₩ за день ${dailyDay}!`);
-    } else {
-      toast.success("Бустер получен!");
+  const saveProfile = async () => {
+    if (!player) return;
+    setSavingProfile(true);
+    try {
+      // Пока сохраняем локально — позже подключим endpoint update-profile
+      const updated: Player = {
+        ...player,
+        first_name: profileData.firstName || player.first_name,
+        last_name: profileData.lastName || null,
+        city: profileData.city || null,
+        pvz_address: profileData.pvz || null,
+      };
+      onPlayerUpdate(updated);
+      toast.success("Данные сохранены!");
+      setOpenSheet(null);
+    } finally {
+      setSavingProfile(false);
     }
   };
 
@@ -96,7 +130,7 @@ const ProfileScreen = ({ balance, history, tgUser }: ProfileScreenProps) => {
             {item.id === "history" && history.length > 0 && (
               <span className="text-xs bg-white/20 rounded-full px-2 py-0.5">{history.length}</span>
             )}
-            {item.id === "daily" && !dailyClaimed && (
+            {item.id === "daily" && !claimedToday && (
               <span className="w-2 h-2 rounded-full bg-green-400" />
             )}
             <Icon name="ChevronRight" size={18} className="text-white/50 shrink-0" />
@@ -104,44 +138,48 @@ const ProfileScreen = ({ balance, history, tgUser }: ProfileScreenProps) => {
         </button>
       ))}
 
-      {/* ===== PROFILE ===== */}
+      {/* ===== PROFILE SHEET ===== */}
       <BottomSheet open={openSheet === "profile"} onClose={() => setOpenSheet(null)} title="Профиль">
         <div className="flex flex-col gap-4">
-          {/* Avatar + nickname */}
           <div className="flex items-center gap-4">
-            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#9b8ecf] to-[#7060b0] border-2 border-white/40 flex items-center justify-center font-display font-black text-2xl text-white shadow-lg shrink-0">
-              {tgUser.avatarLetter}
-            </div>
-            <div>
-              <div className="font-bold text-base">{tgUser.name}</div>
-              <div className="text-white/60 text-sm">@{tgUser.username}</div>
+            {player?.photo_url ? (
+              <img src={player.photo_url} alt={displayName}
+                className="w-16 h-16 rounded-full border-2 border-white/40 object-cover shrink-0 shadow-lg" />
+            ) : (
+              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#9b8ecf] to-[#7060b0] border-2 border-white/40 flex items-center justify-center font-display font-black text-2xl text-white shadow-lg shrink-0">
+                {avatarLetter}
+              </div>
+            )}
+            <div className="flex-1">
+              <div className="font-bold text-base">{displayName}</div>
+              {player?.username && (
+                <div className="text-white/60 text-sm">@{player.username}</div>
+              )}
             </div>
             <button
-              className="ml-auto w-9 h-9 rounded-xl bg-white/15 flex items-center justify-center active:scale-90 transition-transform"
-              onClick={() => toast("Настройки")}
+              className="w-9 h-9 rounded-xl bg-white/15 flex items-center justify-center active:scale-90 transition-transform shrink-0"
+              onClick={() => toast("Настройки — скоро")}
             >
               <Icon name="Settings" size={18} className="text-white" />
             </button>
           </div>
 
-          {/* Stats */}
           <div className="grid grid-cols-3 gap-2">
             {[
               { label: "Баланс", value: `${balance.toLocaleString("ru")} ₩` },
               { label: "Игр", value: gamesPlayed },
               { label: "Побед", value: gamesWon },
               { label: "Поражений", value: gamesLost },
-              { label: "Друзей", value: 0 },
-              { label: "Дней в игре", value: 1 },
+              { label: "Серия дней", value: `${streak} д.` },
+              { label: "ID", value: `#${player?.id ?? "—"}` },
             ].map((s) => (
               <div key={s.label} className="app-card-inner p-2.5 text-center">
-                <div className="font-bold text-sm text-yellow-300">{s.value}</div>
+                <div className="font-bold text-sm text-yellow-300 truncate">{s.value}</div>
                 <div className="text-[10px] text-white/60 mt-0.5">{s.label}</div>
               </div>
             ))}
           </div>
 
-          {/* Form */}
           <div className="text-xs font-bold text-white/60 uppercase tracking-wide">Личные данные</div>
           {[
             { key: "firstName", label: "Имя", placeholder: "Введите имя" },
@@ -159,16 +197,18 @@ const ProfileScreen = ({ balance, history, tgUser }: ProfileScreenProps) => {
               />
             </div>
           ))}
+
           <button
-            onClick={() => toast.success("Данные сохранены")}
-            className="w-full py-3 rounded-xl bg-green-600 border border-green-400/50 font-bold text-sm active:scale-95 transition-transform"
+            onClick={saveProfile}
+            disabled={savingProfile}
+            className="w-full py-3 rounded-xl bg-green-600 border border-green-400/50 font-bold text-sm active:scale-95 transition-transform disabled:opacity-60"
           >
-            Сохранить
+            {savingProfile ? "Сохраняем..." : "Сохранить"}
           </button>
         </div>
       </BottomSheet>
 
-      {/* ===== TON ===== */}
+      {/* ===== TON SHEET ===== */}
       <BottomSheet open={openSheet === "ton"} onClose={() => setOpenSheet(null)} title="Кошелёк TON">
         <div className="flex flex-col items-center gap-4 py-4">
           <div className="text-5xl">💎</div>
@@ -185,7 +225,7 @@ const ProfileScreen = ({ balance, history, tgUser }: ProfileScreenProps) => {
         </div>
       </BottomSheet>
 
-      {/* ===== FRIENDS ===== */}
+      {/* ===== FRIENDS SHEET ===== */}
       <BottomSheet open={openSheet === "friends"} onClose={() => setOpenSheet(null)} title="Приглашай друзей">
         <div className="flex flex-col gap-4">
           <div className="app-card-inner p-4 text-center">
@@ -194,7 +234,11 @@ const ProfileScreen = ({ balance, history, tgUser }: ProfileScreenProps) => {
             <div className="text-xs text-white/60">Друг получает 50 ₩ при регистрации</div>
           </div>
           <button
-            onClick={() => { navigator.clipboard.writeText("https://t.me/WheelBot?start=ref_USER123"); toast.success("Ссылка скопирована!"); }}
+            onClick={() => {
+              const link = `https://t.me/WheelBot?start=ref_${player?.id ?? "0"}`;
+              navigator.clipboard.writeText(link);
+              toast.success("Ссылка скопирована!");
+            }}
             className="w-full py-3 rounded-xl bg-green-600 border border-green-400/50 font-bold text-sm flex items-center justify-center gap-2 active:scale-95 transition-transform"
           >
             <Icon name="Link" size={16} />
@@ -207,87 +251,75 @@ const ProfileScreen = ({ balance, history, tgUser }: ProfileScreenProps) => {
         </div>
       </BottomSheet>
 
-      {/* ===== DAILY ===== */}
+      {/* ===== DAILY SHEET ===== */}
       <BottomSheet open={openSheet === "daily"} onClose={() => setOpenSheet(null)} title="Ежедневный вход">
         <div className="flex flex-col gap-4">
           <div className="text-sm text-white/70 text-center">
-            День <span className="text-yellow-300 font-bold">{dailyDay}</span> из 7
+            Серия: <span className="text-yellow-300 font-bold">{streak}</span> дней
           </div>
           <div className="grid grid-cols-7 gap-1.5">
             {DAILY_REWARDS.map((reward, i) => {
               const dayNum = i + 1;
-              const isPast = dayNum < dailyDay;
-              const isCurrent = dayNum === dailyDay;
-              const isFuture = dayNum > dailyDay;
+              const currentDay = ((streak) % 7) + 1;
+              const isPast = dayNum < currentDay;
+              const isCurrent = dayNum === currentDay;
               return (
-                <div
-                  key={i}
-                  className={`flex flex-col items-center gap-1 p-2 rounded-xl border ${
-                    isPast ? "bg-green-500/20 border-green-400/40 opacity-70"
-                    : isCurrent ? "bg-yellow-500/30 border-yellow-400/60"
-                    : "bg-white/5 border-white/10 opacity-40"
-                  }`}
-                >
-                  <div className="text-[10px] text-white/60">День {dayNum}</div>
-                  <div className="text-base">{typeof reward === "number" ? `${reward}` : reward}</div>
-                  {typeof reward === "number" && (
-                    <div className="text-[9px] text-yellow-300">₩</div>
-                  )}
+                <div key={i} className={`flex flex-col items-center gap-1 p-2 rounded-xl border ${
+                  isPast ? "bg-green-500/20 border-green-400/40 opacity-70"
+                  : isCurrent ? "bg-yellow-500/30 border-yellow-400/60"
+                  : "bg-white/5 border-white/10 opacity-40"
+                }`}>
+                  <div className="text-[10px] text-white/60">Д{dayNum}</div>
+                  <div className="text-base">{typeof reward === "number" ? reward : reward}</div>
+                  {typeof reward === "number" && <div className="text-[9px] text-yellow-300">₩</div>}
                   {isPast && <Icon name="Check" size={10} className="text-green-400" />}
                 </div>
               );
             })}
           </div>
           <button
-            onClick={claimDaily}
-            disabled={dailyClaimed}
+            disabled={claimedToday}
+            onClick={() => toast("Ежедневный вход — скоро")}
             className={`w-full py-3 rounded-xl font-bold text-sm active:scale-95 transition-transform ${
-              dailyClaimed
+              claimedToday
                 ? "bg-white/10 border border-white/20 text-white/40"
                 : "bg-yellow-500/30 border border-yellow-400/50 text-yellow-300"
             }`}
           >
-            {dailyClaimed ? "Уже получено сегодня ✓" : `Получить награду дня ${dailyDay}`}
+            {claimedToday ? "Уже получено сегодня ✓" : "Получить награду"}
           </button>
         </div>
       </BottomSheet>
 
-      {/* ===== LEADERS ===== */}
+      {/* ===== LEADERS SHEET ===== */}
       <BottomSheet open={openSheet === "leaders"} onClose={() => setOpenSheet(null)} title="Таблица лидеров">
         <div className="flex flex-col gap-2">
           {LEADERS.map((l) => (
-            <div
-              key={l.place}
-              className={`app-card-inner px-4 py-3 flex items-center gap-3 ${l.place <= 3 ? "border-yellow-400/40" : ""}`}
-            >
+            <div key={l.place} className={`app-card-inner px-4 py-3 flex items-center gap-3 ${l.place <= 3 ? "border-yellow-400/40" : ""}`}>
               <div className={`w-8 text-center font-black text-sm shrink-0 ${
                 l.place === 1 ? "text-yellow-400" : l.place === 2 ? "text-gray-300" : l.place === 3 ? "text-orange-400" : "text-white/50"
               }`}>
-                {l.place <= 3 ? ["🥇", "🥈", "🥉"][l.place - 1] : `#${l.place}`}
+                {l.place <= 3 ? ["🥇","🥈","🥉"][l.place-1] : `#${l.place}`}
               </div>
               <div className="flex-1 min-w-0">
                 <div className="font-bold text-sm truncate">{l.name}</div>
                 <div className="text-xs text-white/50">{l.games} игр</div>
               </div>
-              <div className="text-yellow-300 font-bold text-sm shrink-0">
-                {l.balance.toLocaleString("ru")} ₩
-              </div>
+              <div className="text-yellow-300 font-bold text-sm shrink-0">{l.balance.toLocaleString("ru")} ₩</div>
             </div>
           ))}
           <div className="mt-2 app-card-inner px-4 py-3 flex items-center gap-3 border-white/30">
-            <div className="w-8 text-center text-white/50 font-black text-sm shrink-0">#∞</div>
+            <div className="w-8 text-center text-white/50 font-black text-sm shrink-0">#—</div>
             <div className="flex-1">
-              <div className="font-bold text-sm">Вы ({tgUser.username})</div>
+              <div className="font-bold text-sm">Вы ({player?.username || player?.first_name || "—"})</div>
               <div className="text-xs text-white/50">{gamesPlayed} игр</div>
             </div>
-            <div className="text-yellow-300 font-bold text-sm shrink-0">
-              {balance.toLocaleString("ru")} ₩
-            </div>
+            <div className="text-yellow-300 font-bold text-sm shrink-0">{balance.toLocaleString("ru")} ₩</div>
           </div>
         </div>
       </BottomSheet>
 
-      {/* ===== PURCHASES ===== */}
+      {/* ===== PURCHASES SHEET ===== */}
       <BottomSheet open={openSheet === "purchases"} onClose={() => setOpenSheet(null)} title="Мои покупки">
         <div className="flex flex-col gap-3">
           <div className="text-xs font-bold text-white/60 uppercase tracking-wide">Бустеры</div>
@@ -298,16 +330,13 @@ const ProfileScreen = ({ balance, history, tgUser }: ProfileScreenProps) => {
                 <div className="font-bold text-xs">{b.name}</div>
                 <div className="flex gap-1 mt-1">
                   {Array.from({ length: b.max }).map((_, i) => (
-                    <div
-                      key={i}
-                      className={`w-4 h-4 rounded-full border ${i < b.owned ? "bg-yellow-400 border-yellow-300" : "bg-white/10 border-white/20"}`}
-                    />
+                    <div key={i} className={`w-4 h-4 rounded-full border ${i < b.owned ? "bg-yellow-400 border-yellow-300" : "bg-white/10 border-white/20"}`} />
                   ))}
                 </div>
                 <div className="text-xs text-white/60">{b.owned}/{b.max}</div>
                 {b.owned < b.max && (
                   <button
-                    onClick={() => { setOpenSheet(null); setTimeout(() => toast("Переход в WHEEL SHOP..."), 200); }}
+                    onClick={() => setOpenSheet(null)}
                     className="w-full py-1.5 rounded-lg bg-green-600/80 border border-green-400/40 text-xs font-bold active:scale-95 transition-transform"
                   >
                     +
@@ -319,7 +348,7 @@ const ProfileScreen = ({ balance, history, tgUser }: ProfileScreenProps) => {
         </div>
       </BottomSheet>
 
-      {/* ===== HISTORY ===== */}
+      {/* ===== HISTORY SHEET ===== */}
       <BottomSheet open={openSheet === "history"} onClose={() => setOpenSheet(null)} title="История розыгрышей">
         <div className="flex flex-col gap-2">
           {history.length === 0 ? (
@@ -335,9 +364,7 @@ const ProfileScreen = ({ balance, history, tgUser }: ProfileScreenProps) => {
                   <div className="text-[10px] text-white/50 mt-0.5">
                     {item.date} · сектор {item.selectedSector} → выпало {item.drawnSector}
                   </div>
-                  <div className="text-[10px] text-white/50">
-                    Стоимость: {item.prizeCost.toLocaleString("ru")} ₩
-                  </div>
+                  <div className="text-[10px] text-white/50">Ставка: {item.prizeCost.toLocaleString("ru")} ₩</div>
                 </div>
                 <div className={`text-xs font-bold shrink-0 ${item.won ? "text-green-400" : "text-red-400"}`}>
                   {item.won ? "Победа" : "Проигрыш"}
