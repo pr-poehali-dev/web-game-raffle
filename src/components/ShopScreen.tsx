@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { Heart, Rocket, Zap, Gift } from "lucide-react";
 import Icon from "@/components/ui/icon";
 import BottomSheet from "@/components/BottomSheet";
 import { toast } from "sonner";
