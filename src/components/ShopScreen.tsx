@@ -17,85 +17,17 @@ type Lot = {
 };
 
 const POPULAR_LOTS: Lot[] = [
-  {
-    id: 1,
-    name: "Наушники TWS Pro",
-    art: "184729301",
-    price: 4990,
-    icon: "Headphones",
-    isPopular: true,
-    pool: 7,
-    poolMax: 10,
-  },
-  {
-    id: 2,
-    name: "Умные часы X8",
-    art: "209384712",
-    price: 7490,
-    icon: "Watch",
-    isPopular: true,
-    pool: 3,
-    poolMax: 10,
-  },
-  {
-    id: 3,
-    name: "Рюкзак городской",
-    art: "156023948",
-    price: 2890,
-    icon: "ShoppingBag",
-    isPopular: true,
-    pool: 9,
-    poolMax: 10,
-  },
-  {
-    id: 4,
-    name: "Колонка JBL Mini",
-    art: "198273645",
-    price: 3590,
-    icon: "Speaker",
-    isPopular: true,
-    pool: 5,
-    poolMax: 10,
-  },
+  { id: 1, name: "Наушники TWS Pro", art: "184729301", price: 4990, icon: "Headphones", isPopular: true, pool: 7, poolMax: 10 },
+  { id: 2, name: "Умные часы X8", art: "209384712", price: 7490, icon: "Watch", isPopular: true, pool: 3, poolMax: 10 },
+  { id: 3, name: "Рюкзак городской", art: "156023948", price: 2890, icon: "ShoppingBag", isPopular: true, pool: 9, poolMax: 10 },
+  { id: 4, name: "Колонка JBL Mini", art: "198273645", price: 3590, icon: "Speaker", isPopular: true, pool: 5, poolMax: 10 },
 ];
 
 const BOOSTERS = [
-  {
-    id: "safebet",
-    icon: "Heart",
-    icon: "Heart",
-    name: "SafeBet",
-    desc: "Защита ставки",
-    cost: 100,
-    color: "#e91e63",
-  },
-  {
-    id: "goldwin",
-    icon: "Rocket",
-    emoji: "🚀",
-    name: "GoldWin",
-    desc: "Золотой выигрыш",
-    cost: 200,
-    color: "#ffa000",
-  },
-  {
-    id: "powerspin",
-    icon: "Zap",
-    emoji: "⚡",
-    name: "PowerSpin",
-    desc: "Мощный спин",
-    cost: 200,
-    color: "#7c4dff",
-  },
-  {
-    id: "bonusdrum",
-    icon: "Gift",
-    emoji: "🎁",
-    name: "BonusDrum",
-    desc: "Бонусный барабан",
-    cost: 100,
-    color: "#00bcd4",
-  },
+  { id: "safebet", icon: "Heart", emoji: "❤️", name: "SafeBet", desc: "Защита ставки", cost: 100, color: "#e91e63" },
+  { id: "goldwin", icon: "Rocket", emoji: "🚀", name: "GoldWin", desc: "Золотой выигрыш", cost: 200, color: "#ffa000" },
+  { id: "powerspin", icon: "Zap", emoji: "⚡", name: "PowerSpin", desc: "Мощный спин", cost: 200, color: "#7c4dff" },
+  { id: "bonusdrum", icon: "Gift", emoji: "🎁", name: "BonusDrum", desc: "Бонусный барабан", cost: 100, color: "#00bcd4" },
 ];
 
 const WCOIN_PACKS = [
@@ -121,41 +53,16 @@ interface ShopScreenProps {
   onGoConverter?: () => void;
 }
 
-const ShopScreen = ({
-  balance,
-  onSelectLot,
-  onBalanceChange,
-  onGoConverter,
-}: ShopScreenProps) => {
+const ShopScreen = ({ balance, onSelectLot, onBalanceChange, onGoConverter }: ShopScreenProps) => {
   const [openSheet, setOpenSheet] = useState<string | null>(null);
   const [tasks, setTasks] = useState(TASKS);
   const [customAmount, setCustomAmount] = useState("");
 
   const SHOP_ITEMS = [
-    {
-      id: "popular",
-      icon: "List",
-      title: "Популярные лоты",
-      sub: "горячая подборка товаров",
-    },
-    {
-      id: "wheelshop",
-      icon: "ShoppingBag",
-      title: "WHEEL SHOP",
-      sub: "прокачай удачу",
-    },
-    {
-      id: "converter",
-      icon: "ArrowLeftRight",
-      title: "WHEEL конвертер",
-      sub: "покупка игровой валюты",
-    },
-    {
-      id: "tasks",
-      icon: "Coins",
-      title: "Получай WCOIN",
-      sub: "выполняя задания",
-    },
+    { id: "popular", icon: "List", title: "Популярные лоты", sub: "горячая подборка товаров" },
+    { id: "wheelshop", icon: "ShoppingBag", title: "WHEEL SHOP", sub: "прокачай удачу" },
+    { id: "converter", icon: "ArrowLeftRight", title: "WHEEL конвертер", sub: "покупка игровой валюты" },
+    { id: "tasks", icon: "Coins", title: "Получай WCOIN", sub: "выполняя задания" },
   ];
 
   const claimTask = (id: number) => {
@@ -167,20 +74,14 @@ const ShopScreen = ({
           return { ...t, done: true };
         }
         return t;
-      }),
+      })
     );
   };
 
-  const buyBooster = (booster: (typeof BOOSTERS)[0]) => {
+  const buyBooster = (booster: typeof BOOSTERS[0]) => {
     if (balance < booster.cost) {
       toast.error(`Недостаточно WCOIN. Купить монеты?`, {
-        action: {
-          label: "Купить",
-          onClick: () => {
-            setOpenSheet(null);
-            setTimeout(() => setOpenSheet("converter"), 300);
-          },
-        },
+        action: { label: "Купить", onClick: () => { setOpenSheet(null); setTimeout(() => setOpenSheet("converter"), 300); } },
       });
       return;
     }
@@ -211,40 +112,24 @@ const ShopScreen = ({
             <div className="font-bold text-sm leading-tight">{item.title}</div>
             <div className="text-xs text-white/60 mt-0.5">{item.sub}</div>
           </div>
-          <Icon
-            name="ChevronRight"
-            size={18}
-            className="text-white/50 shrink-0"
-          />
+          <Icon name="ChevronRight" size={18} className="text-white/50 shrink-0" />
         </button>
       ))}
 
       {/* ===== POPULAR LOTS ===== */}
-      <BottomSheet
-        open={openSheet === "popular"}
-        onClose={() => setOpenSheet(null)}
-        title="Популярные лоты"
-      >
+      <BottomSheet open={openSheet === "popular"} onClose={() => setOpenSheet(null)} title="Популярные лоты">
         <div className="flex flex-col gap-4">
           {POPULAR_LOTS.map((lot) => (
-            <div
-              key={lot.id}
-              className="app-card-inner p-4 flex flex-col gap-3"
-            >
+            <div key={lot.id} className="app-card-inner p-4 flex flex-col gap-3">
               <div className="flex gap-3">
                 <div className="w-16 h-16 rounded-xl bg-white/10 flex items-center justify-center shrink-0">
                   <Icon name={lot.icon} size={28} className="text-white/80" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="font-bold text-sm leading-tight mb-1">
-                    {lot.name}
-                  </div>
-                  <div className="text-xs text-white/60 mb-1">
-                    Арт: {lot.art}
-                  </div>
+                  <div className="font-bold text-sm leading-tight mb-1">{lot.name}</div>
+                  <div className="text-xs text-white/60 mb-1">Арт: {lot.art}</div>
                   <div className="text-yellow-300 font-bold text-sm">
-                    {Math.ceil(lot.price / 10).toLocaleString("ru")} ₩ —
-                    стоимость розыгрыша
+                    {Math.ceil(lot.price / 10).toLocaleString("ru")} ₩ — стоимость розыгрыша
                   </div>
                 </div>
               </div>
@@ -254,9 +139,7 @@ const ShopScreen = ({
                 <div>
                   <div className="flex justify-between text-xs text-white/60 mb-1">
                     <span>Пул игроков</span>
-                    <span>
-                      {lot.pool}/{lot.poolMax}
-                    </span>
+                    <span>{lot.pool}/{lot.poolMax}</span>
                   </div>
                   <div className="h-1.5 bg-white/15 rounded-full overflow-hidden">
                     <div
@@ -269,22 +152,13 @@ const ShopScreen = ({
 
               <div className="flex gap-2">
                 <button
-                  onClick={() =>
-                    window.open(
-                      `https://www.wildberries.ru/catalog/${lot.art}/detail.aspx`,
-                      "_blank",
-                    )
-                  }
+                  onClick={() => window.open(`https://www.wildberries.ru/catalog/${lot.art}/detail.aspx`, "_blank")}
                   className="flex-1 py-2 rounded-xl bg-[#c2185b]/80 border border-[#e91e63]/50 text-xs font-bold active:scale-95 transition-transform"
                 >
                   Посмотреть
                 </button>
                 <button
-                  onClick={() => {
-                    onSelectLot(lot);
-                    setOpenSheet(null);
-                    toast.success(`Лот выбран: ${lot.name}`);
-                  }}
+                  onClick={() => { onSelectLot(lot); setOpenSheet(null); toast.success(`Лот выбран: ${lot.name}`); }}
                   className="flex-1 py-2 rounded-xl bg-green-600 border border-green-400/50 text-xs font-bold active:scale-95 transition-transform"
                 >
                   Выбрать
@@ -296,36 +170,22 @@ const ShopScreen = ({
       </BottomSheet>
 
       {/* ===== WHEEL SHOP ===== */}
-      <BottomSheet
-        open={openSheet === "wheelshop"}
-        onClose={() => setOpenSheet(null)}
-        title="WHEEL SHOP"
-      >
+      <BottomSheet open={openSheet === "wheelshop"} onClose={() => setOpenSheet(null)} title="WHEEL SHOP">
         <div className="flex flex-col gap-4">
           {/* Boosters */}
-          <div className="text-xs font-bold text-white/60 uppercase tracking-wide">
-            Бустеры
-          </div>
+          <div className="text-xs font-bold text-white/60 uppercase tracking-wide">Бустеры</div>
           <div className="grid grid-cols-2 gap-3">
             {BOOSTERS.map((b) => (
-              <div
-                key={b.id}
-                className="app-card-inner p-3 flex flex-col items-center gap-2 text-center"
-              >
+              <div key={b.id} className="app-card-inner p-3 flex flex-col items-center gap-2 text-center">
                 <div
                   className="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl"
-                  style={{
-                    background: b.color + "33",
-                    border: `1.5px solid ${b.color}66`,
-                  }}
+                  style={{ background: b.color + "33", border: `1.5px solid ${b.color}66` }}
                 >
                   {b.emoji}
                 </div>
                 <div className="font-bold text-sm">{b.name}</div>
                 <div className="text-xs text-white/60">{b.desc}</div>
-                <div className="text-yellow-300 font-bold text-sm">
-                  {b.cost} ₩
-                </div>
+                <div className="text-yellow-300 font-bold text-sm">{b.cost} ₩</div>
                 <button
                   onClick={() => buyBooster(b)}
                   className="w-full py-2 rounded-xl bg-green-600 border border-green-400/50 text-xs font-bold active:scale-95 transition-transform"
@@ -337,23 +197,14 @@ const ShopScreen = ({
           </div>
 
           {/* Wcoin packs */}
-          <div className="text-xs font-bold text-white/60 uppercase tracking-wide mt-2">
-            Игровая валюта
-          </div>
+          <div className="text-xs font-bold text-white/60 uppercase tracking-wide mt-2">Игровая валюта</div>
           <div className="flex flex-col gap-2">
             {WCOIN_PACKS.map((pack) => (
-              <div
-                key={pack.amount}
-                className="app-card-inner px-4 py-3 flex items-center gap-3"
-              >
-                <div className="w-10 h-10 coin-w text-[11px] shrink-0">
-                  {pack.amount >= 1000 ? "1K" : pack.amount}
-                </div>
+              <div key={pack.amount} className="app-card-inner px-4 py-3 flex items-center gap-3">
+                <div className="w-10 h-10 coin-w text-[11px] shrink-0">{pack.amount >= 1000 ? "1K" : pack.amount}</div>
                 <div className="flex-1">
                   <div className="font-bold text-sm">{pack.amount} WCOIN</div>
-                  <div className="text-xs text-white/60">
-                    {pack.price} · {pack.ton}
-                  </div>
+                  <div className="text-xs text-white/60">{pack.price} · {pack.ton}</div>
                 </div>
                 <button
                   onClick={() => buyWcoin(pack.amount)}
@@ -368,36 +219,21 @@ const ShopScreen = ({
       </BottomSheet>
 
       {/* ===== CONVERTER ===== */}
-      <BottomSheet
-        open={openSheet === "converter"}
-        onClose={() => setOpenSheet(null)}
-        title="WHEEL конвертер"
-      >
+      <BottomSheet open={openSheet === "converter"} onClose={() => setOpenSheet(null)} title="WHEEL конвертер">
         <div className="flex flex-col gap-4">
           <div className="app-card-inner p-4 text-center">
             <div className="text-4xl mb-2">💱</div>
             <div className="font-bold text-sm mb-1">Курс обмена</div>
-            <div className="text-white/60 text-xs">
-              1 WCOIN = 0.49 ₽ / 0.0015 TON
-            </div>
+            <div className="text-white/60 text-xs">1 WCOIN = 0.49 ₽ / 0.0015 TON</div>
           </div>
 
-          <div className="text-xs font-bold text-white/60 uppercase tracking-wide">
-            Выберите пакет
-          </div>
+          <div className="text-xs font-bold text-white/60 uppercase tracking-wide">Выберите пакет</div>
           {WCOIN_PACKS.map((pack) => (
-            <div
-              key={pack.amount}
-              className="app-card-inner px-4 py-3 flex items-center gap-3"
-            >
-              <div className="w-10 h-10 coin-w text-[11px] shrink-0">
-                {pack.amount >= 1000 ? "1K" : pack.amount}
-              </div>
+            <div key={pack.amount} className="app-card-inner px-4 py-3 flex items-center gap-3">
+              <div className="w-10 h-10 coin-w text-[11px] shrink-0">{pack.amount >= 1000 ? "1K" : pack.amount}</div>
               <div className="flex-1">
                 <div className="font-bold text-sm">{pack.amount} WCOIN</div>
-                <div className="text-xs text-white/60">
-                  {pack.price} · {pack.ton}
-                </div>
+                <div className="text-xs text-white/60">{pack.price} · {pack.ton}</div>
               </div>
               <button
                 onClick={() => buyWcoin(pack.amount)}
@@ -408,9 +244,7 @@ const ShopScreen = ({
             </div>
           ))}
 
-          <div className="text-xs font-bold text-white/60 uppercase tracking-wide mt-1">
-            Произвольная сумма
-          </div>
+          <div className="text-xs font-bold text-white/60 uppercase tracking-wide mt-1">Произвольная сумма</div>
           <div className="flex gap-2">
             <input
               type="number"
@@ -422,10 +256,7 @@ const ShopScreen = ({
             <button
               onClick={() => {
                 const n = parseInt(customAmount);
-                if (!n || n < 10) {
-                  toast.error("Минимум 10 WCOIN");
-                  return;
-                }
+                if (!n || n < 10) { toast.error("Минимум 10 WCOIN"); return; }
                 buyWcoin(n);
                 setCustomAmount("");
               }}
@@ -438,21 +269,12 @@ const ShopScreen = ({
       </BottomSheet>
 
       {/* ===== TASKS ===== */}
-      <BottomSheet
-        open={openSheet === "tasks"}
-        onClose={() => setOpenSheet(null)}
-        title="Получай WCOIN"
-      >
+      <BottomSheet open={openSheet === "tasks"} onClose={() => setOpenSheet(null)} title="Получай WCOIN">
         <div className="flex flex-col gap-2">
           {pendingTasks.map((task) => (
-            <div
-              key={task.id}
-              className="app-card-inner px-4 py-3 flex items-center gap-3"
-            >
+            <div key={task.id} className="app-card-inner px-4 py-3 flex items-center gap-3">
               <div className="flex-1 min-w-0">
-                <div className="text-sm font-semibold leading-tight">
-                  {task.title}
-                </div>
+                <div className="text-sm font-semibold leading-tight">{task.title}</div>
               </div>
               <button
                 onClick={() => claimTask(task.id)}
@@ -464,18 +286,11 @@ const ShopScreen = ({
           ))}
           {doneTasks.length > 0 && (
             <>
-              <div className="text-xs text-white/40 uppercase tracking-wide mt-2 px-1">
-                Выполнено
-              </div>
+              <div className="text-xs text-white/40 uppercase tracking-wide mt-2 px-1">Выполнено</div>
               {doneTasks.map((task) => (
-                <div
-                  key={task.id}
-                  className="app-card-inner px-4 py-3 flex items-center gap-3 opacity-50"
-                >
+                <div key={task.id} className="app-card-inner px-4 py-3 flex items-center gap-3 opacity-50">
                   <div className="flex-1 min-w-0">
-                    <div className="text-sm font-semibold leading-tight line-through">
-                      {task.title}
-                    </div>
+                    <div className="text-sm font-semibold leading-tight line-through">{task.title}</div>
                   </div>
                   <div className="px-3 py-2 rounded-xl bg-white/10 text-white/50 text-xs font-bold whitespace-nowrap shrink-0">
                     Получено
