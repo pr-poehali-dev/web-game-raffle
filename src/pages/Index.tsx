@@ -1,6 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Icon from "@/components/ui/icon";
 import FortuneWheel from "@/components/FortuneWheel";
+import ShopScreen from "@/components/ShopScreen";
+import ProfileScreen from "@/components/ProfileScreen";
 import { toast } from "sonner";
 
 const WB_PRODUCT_URL =
@@ -84,46 +86,16 @@ const POPULAR_LOTS: Lot[] = [
   },
 ];
 
-const PROFILE_BUTTONS = [
-  { icon: "User", title: "Профиль", sub: "Данные игрока" },
-  {
-    icon: "Wallet",
-    title: "Подключай свой кошелёк TON",
-    sub: "Привязка криптокошелька",
-  },
-  { icon: "Users", title: "Приглашай друзей", sub: "Реферальная программа" },
-  {
-    icon: "CalendarCheck",
-    title: "Ежедневный вход",
-    sub: "Бонус за активность",
-  },
-  {
-    icon: "BarChart2",
-    title: "Таблица лидеров",
-    sub: "Отслеживай свой рейтинг",
-  },
-  {
-    icon: "ShoppingCart",
-    title: "Мои покупки",
-    sub: "Бустеры и прочие покупки",
-  },
-  {
-    icon: "Notebook",
-    title: "История розыгрышей",
-    sub: "Хронология событий игрока",
-  },
-];
-
-const SHOP_BUTTONS = [
-  { icon: "List", title: "Популярные лоты", sub: "горячая подборка товаров" },
-  { icon: "ShoppingBag", title: "WHEEL SHOP", sub: "прокачай удачу" },
-  {
-    icon: "ArrowLeftRight",
-    title: "WHEEL конвертер",
-    sub: "покупка игровой валюты",
-  },
-  { icon: "Coins", title: "Получай WCOIN", sub: "выполняя задания" },
-];
+// TG WebApp user data
+const getTgUser = () => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const tg = (window as unknown as Record<string, any>).Telegram?.WebApp?.initDataUnsafe?.user;
+  if (tg) {
+    const name = [tg.first_name, tg.last_name].filter(Boolean).join(" ");
+    return { name: name || "Игрок", username: tg.username || "player", avatarLetter: (tg.first_name?.[0] || "U").toUpperCase() };
+  }
+  return { name: "Игрок", username: "player", avatarLetter: "U" };
+};
 
 const Index = () => {
   const [tab, setTab] = useState<Tab>("game");
@@ -139,6 +111,13 @@ const Index = () => {
   const [loading, setLoading] = useState(false);
   const [boosterActive, setBoosterActive] = useState(false);
   const [history, setHistory] = useState<HistoryItem[]>([]);
+  const [tgUser] = useState(getTgUser);
+
+  useEffect(() => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const tg = (window as unknown as Record<string, any>).Telegram?.WebApp;
+    if (tg) { tg.ready(); tg.expand(); }
+  }, []);
 
   // Result state
   const [resultWon, setResultWon] = useState(false);
@@ -311,17 +290,18 @@ const Index = () => {
         <header className="flex items-center justify-between px-4 pt-3 pb-2 shrink-0">
           <div className="flex items-center gap-2.5">
             <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#9b8ecf] to-[#7060b0] border-2 border-white/40 flex items-center justify-center font-display font-bold text-xl text-white shadow-lg shrink-0">
-              U
+              {tgUser.avatarLetter}
             </div>
-            <div className="font-display font-black text-[15px] text-white drop-shadow-md leading-tight">
-              user_nickname
+            <div>
+              <div className="font-display font-black text-[15px] text-white drop-shadow-md leading-tight">
+                {tgUser.name}
+              </div>
+              <div className="text-[11px] text-white/60 leading-tight">@{tgUser.username}</div>
             </div>
           </div>
           <div className="flex items-center gap-1.5 bg-[#1a3a6e]/80 border border-[#4a7acc]/50 rounded-xl px-3 py-1.5">
             <div className="w-5 h-5 coin-w text-[9px] shrink-0">W</div>
-            <span className="font-bold text-sm">
-              {balance.toLocaleString("ru")}
-            </span>
+            <span className="font-bold text-sm">{balance.toLocaleString("ru")}</span>
           </div>
         </header>
 
@@ -557,158 +537,26 @@ const Index = () => {
 
           {/* ===== PROFILE ===== */}
           {tab === "profile" && (
-            <div className="flex flex-col gap-2 overflow-y-auto animate-fade-in">
-              {PROFILE_BUTTONS.map((btn, i) => (
-                <button
-                  key={i}
-                  onClick={() => {
-                    if (btn.title === "История розыгрышей") {
-                      // показываем историю ниже
-                    }
-                    toast(btn.title);
-                  }}
-                  className="app-btn w-full flex items-center gap-3 px-4 py-3.5 active:scale-[0.98] transition-transform text-left shrink-0"
-                >
-                  <div className="w-10 h-10 rounded-xl bg-white/15 flex items-center justify-center shrink-0">
-                    <Icon name={btn.icon} size={20} className="text-white" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="font-bold text-sm leading-tight">
-                      {btn.title}
-                    </div>
-                    <div className="text-xs text-white/60 mt-0.5">
-                      {btn.sub}
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    {btn.title === "История розыгрышей" &&
-                      history.length > 0 && (
-                        <span className="text-xs bg-white/20 rounded-full px-2 py-0.5">
-                          {history.length}
-                        </span>
-                      )}
-                    <Icon
-                      name="ChevronRight"
-                      size={18}
-                      className="text-white/50 shrink-0"
-                    />
-                  </div>
-                </button>
-              ))}
-
-              {/* История */}
-              {history.length > 0 && (
-                <div className="mt-2">
-                  <div className="text-xs font-bold text-white/60 px-1 mb-2 uppercase tracking-wide">
-                    История розыгрышей
-                  </div>
-                  <div className="flex flex-col gap-1.5">
-                    {history.map((item) => (
-                      <div
-                        key={item.id}
-                        className="app-card-inner px-3 py-2.5 flex items-center gap-3"
-                      >
-                        <div
-                          className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${item.won ? "bg-green-500/30" : "bg-red-500/30"}`}
-                        >
-                          <Icon
-                            name={item.won ? "Trophy" : "X"}
-                            size={14}
-                            className={
-                              item.won ? "text-green-400" : "text-red-400"
-                            }
-                          />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="text-xs font-semibold truncate">
-                            {item.lotName}
-                          </div>
-                          <div className="text-[10px] text-white/50 mt-0.5">
-                            Сектор {item.selectedSector} → выпало{" "}
-                            {item.drawnSector} · {item.date}
-                          </div>
-                        </div>
-                        <div className="text-xs font-bold shrink-0">
-                          <span
-                            className={
-                              item.won ? "text-green-400" : "text-red-400"
-                            }
-                          >
-                            {item.won ? "Победа" : `−${item.prizeCost} ₩`}
-                          </span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
+            <ProfileScreen
+              balance={balance}
+              history={history}
+              tgUser={tgUser}
+            />
           )}
 
           {/* ===== SHOP ===== */}
           {tab === "shop" && (
-            <div className="flex flex-col gap-2 overflow-y-auto animate-fade-in">
-              {SHOP_BUTTONS.map((btn, i) => (
-                <button
-                  key={i}
-                  onClick={() => toast(btn.title)}
-                  className="app-btn w-full flex items-center gap-3 px-4 py-3.5 active:scale-[0.98] transition-transform text-left shrink-0"
-                >
-                  <div className="w-10 h-10 rounded-xl bg-white/15 flex items-center justify-center shrink-0">
-                    <Icon name={btn.icon} size={20} className="text-white" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="font-bold text-sm leading-tight">
-                      {btn.title}
-                    </div>
-                    <div className="text-xs text-white/60 mt-0.5">
-                      {btn.sub}
-                    </div>
-                  </div>
-                  <Icon
-                    name="ChevronRight"
-                    size={18}
-                    className="text-white/50 shrink-0"
-                  />
-                </button>
-              ))}
-
-              <div className="mt-2">
-                <div className="text-xs font-bold text-white/60 px-1 mb-2 uppercase tracking-wide">
-                  Популярные лоты
-                </div>
-                <div className="grid grid-cols-2 gap-2">
-                  {POPULAR_LOTS.map((lot) => (
-                    <button
-                      key={lot.id}
-                      onClick={() => {
-                        setActiveLot(lot);
-                        setArticle(lot.art);
-                        setManualPrice("");
-                        setPrizeCost(Math.ceil(lot.price / 10));
-                        setTab("game");
-                        toast.success(`Выбран лот: ${lot.name}`);
-                      }}
-                      className="app-card-inner p-3 text-left active:scale-95 transition-transform"
-                    >
-                      <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center mb-2">
-                        <Icon
-                          name={lot.icon}
-                          size={20}
-                          className="text-white/80"
-                        />
-                      </div>
-                      <div className="text-xs font-semibold leading-tight line-clamp-2 mb-1">
-                        {lot.name}
-                      </div>
-                      <div className="text-[11px] text-yellow-300 font-bold">
-                        {Math.ceil(lot.price / 10).toLocaleString("ru")} ₩
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
+            <ShopScreen
+              balance={balance}
+              onSelectLot={(lot) => {
+                setActiveLot(lot);
+                setArticle(lot.art);
+                setManualPrice("");
+                setPrizeCost(Math.ceil(lot.price / 10));
+                setTab("game");
+              }}
+              onBalanceChange={(delta) => setBalance((b) => b + delta)}
+            />
           )}
         </div>
 
