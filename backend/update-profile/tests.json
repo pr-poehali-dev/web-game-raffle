@@ -1,0 +1,13 @@
+{
+  "tests": [
+    {
+      "name": "Missing player_id returns 400",
+      "method": "POST",
+      "path": "/",
+      "body": {"first_name": "Test"},
+      "expectedStatus": 400,
+      "expectedBody": {"error": "player_id required"},
+      "bodyMatcher": "partial"
+    }
+  ]
+}

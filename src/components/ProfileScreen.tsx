@@ -3,6 +3,8 @@ import Icon from "@/components/ui/icon";
 import BottomSheet from "@/components/BottomSheet";
 import { toast } from "sonner";
 
+const UPDATE_PROFILE_URL = "https://functions.poehali.dev/2d46409f-cea4-412e-8d4e-5ee7f83dccdc";
+
 type HistoryItem = {
   id: number;
   lotName: string;
@@ -93,19 +95,40 @@ const ProfileScreen = ({ balance, history, player, onPlayerUpdate }: ProfileScre
 
   const saveProfile = async () => {
     if (!player) return;
+    if (!profileData.firstName.trim()) {
+      toast.error("Введите имя");
+      return;
+    }
     setSavingProfile(true);
     try {
-      // Пока сохраняем локально — позже подключим endpoint update-profile
+      const res = await fetch(UPDATE_PROFILE_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          player_id: player.id,
+          first_name: profileData.firstName.trim(),
+          last_name: profileData.lastName.trim() || null,
+          city: profileData.city.trim() || null,
+          pvz_address: profileData.pvz.trim() || null,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok || data.error) {
+        toast.error(data.error || "Ошибка сохранения");
+        return;
+      }
       const updated: Player = {
         ...player,
-        first_name: profileData.firstName || player.first_name,
-        last_name: profileData.lastName || null,
-        city: profileData.city || null,
-        pvz_address: profileData.pvz || null,
+        first_name: data.first_name,
+        last_name: data.last_name,
+        city: data.city,
+        pvz_address: data.pvz_address,
       };
       onPlayerUpdate(updated);
       toast.success("Данные сохранены!");
       setOpenSheet(null);
+    } catch {
+      toast.error("Ошибка соединения");
     } finally {
       setSavingProfile(false);
     }
@@ -116,7 +139,17 @@ const ProfileScreen = ({ balance, history, player, onPlayerUpdate }: ProfileScre
       {PROFILE_ITEMS.map((item) => (
         <button
           key={item.id}
-          onClick={() => setOpenSheet(item.id)}
+          onClick={() => {
+            if (item.id === "profile") {
+              setProfileData({
+                firstName: player?.first_name || "",
+                lastName: player?.last_name || "",
+                city: player?.city || "",
+                pvz: player?.pvz_address || "",
+              });
+            }
+            setOpenSheet(item.id);
+          }}
           className="app-btn w-full flex items-center gap-3 px-4 py-3.5 active:scale-[0.98] transition-transform text-left shrink-0"
         >
           <div className="w-10 h-10 rounded-xl bg-white/15 flex items-center justify-center shrink-0">
