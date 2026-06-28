@@ -196,28 +196,6 @@ const ShopScreen = ({ balance, onSelectLot, onBalanceChange, onGoConverter }: Sh
             ))}
           </div>
 
-          {/* Wcoin packs */}
-          <div className="text-xs font-bold text-white/60 uppercase tracking-wide mt-2">Игровая валюта</div>
-          <div className="flex flex-col gap-2">
-            {WCOIN_PACKS.map((pack) => (
-              <div key={pack.amount} className="app-card-inner px-4 py-3 flex items-center gap-3">
-                <div className="w-10 h-10 coin-w text-[11px] shrink-0">{pack.amount >= 1000 ? "1K" : pack.amount}</div>
-                <div className="flex-1">
-                  <div className="font-bold text-sm">{pack.amount} WCOIN</div>
-                  <div className="text-xs text-white/60">{pack.price} · {pack.ton}</div>
-                </div>
-                <button
-                  onClick={() => buyWcoin(pack.amount)}
-                  className="px-4 py-2 rounded-xl bg-yellow-500/30 border border-yellow-400/50 text-yellow-300 text-xs font-bold active:scale-95 transition-transform"
-                >
-                  Купить
-                </button>
-              </div>
-            ))}
-          </div>
-        </div>
-      </BottomSheet>
-
       {/* ===== CONVERTER ===== */}
       <BottomSheet open={openSheet === "converter"} onClose={() => setOpenSheet(null)} title="WHEEL конвертер">
         <div className="flex flex-col gap-4">
