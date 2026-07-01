@@ -5,6 +5,7 @@ import hashlib
 from urllib.parse import parse_qsl, unquote
 import psycopg2
 
+
 SCHEMA = os.environ.get("MAIN_DB_SCHEMA", "public")
 
 def verify_tg_init_data(init_data: str, bot_token: str) -> dict | None:

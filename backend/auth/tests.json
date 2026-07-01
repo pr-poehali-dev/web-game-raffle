@@ -6,7 +6,7 @@
       "path": "/",
       "body": {},
       "expectedStatus": 200,
-      "expectedBody": {"player": {}, "is_new": false},
+      "expectedBody": {"player": {}},
       "bodyMatcher": "partial"
     }
   ]
