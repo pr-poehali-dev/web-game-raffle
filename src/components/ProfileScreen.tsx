@@ -3,6 +3,8 @@ import Icon from "@/components/ui/icon";
 import BottomSheet from "@/components/BottomSheet";
 import { toast } from "sonner";
 
+const UPDATE_PROFILE_URL = "https://functions.poehali.dev/2d46409f-cea4-412e-8d4e-5ee7f83dccdc";
+
 type HistoryItem = {
   id: number;
   lotName: string;
@@ -15,19 +17,28 @@ type HistoryItem = {
 
 type Player = {
   id: number;
-  telegram_id: string | null;
-  name: string | null;
-  avatar_url: string | null;
-  email: string | null;
+  tg_id: number;
+  username: string | null;
+  first_name: string;
+  last_name: string | null;
+  photo_url: string | null;
+  balance: number;
+  games_played: number;
+  games_won: number;
+  daily_streak: number;
+  daily_last_claimed: string | null;
+  city: string | null;
+  pvz_address: string | null;
 };
 
 interface ProfileScreenProps {
   balance: number;
   history: HistoryItem[];
   player: Player | null;
-  onLoginClick: () => void;
-  onLogout: () => void;
+  onPlayerUpdate: (p: Player) => void;
 }
+
+const DAILY_REWARDS = [10, 25, 50, 75, 100, 150, "🎁"];
 
 const LEADERS = [
   { place: 1, name: "WheelKing", balance: 98500, games: 312 },
@@ -42,29 +53,77 @@ const LEADERS = [
   { place: 10, name: "Wheelie", balance: 24300, games: 98 },
 ];
 
-const ProfileScreen = ({ balance, history, player, onLoginClick, onLogout }: ProfileScreenProps) => {
+const ProfileScreen = ({ balance, history, player, onPlayerUpdate }: ProfileScreenProps) => {
   const [openSheet, setOpenSheet] = useState<string | null>(null);
+  const [savingProfile, setSavingProfile] = useState(false);
+  const [profileData, setProfileData] = useState({
+    firstName: player?.first_name || "",
+    lastName: player?.last_name || "",
+    city: player?.city || "",
+    pvz: player?.pvz_address || "",
+  });
 
-  const displayName = player?.name || "Игрок";
-  const avatarLetter = displayName[0]?.toUpperCase() || "?";
-
-  const gamesPlayed = history.length;
-  const gamesWon = history.filter((h) => h.won).length;
+  const gamesPlayed = player?.games_played ?? history.length;
+  const gamesWon = player?.games_won ?? history.filter((h) => h.won).length;
   const gamesLost = gamesPlayed - gamesWon;
+
+  const displayName = player
+    ? [player.first_name, player.last_name].filter(Boolean).join(" ")
+    : "Игрок";
+  const avatarLetter = player?.first_name?.[0]?.toUpperCase() || "?";
+
+  const streak = player?.daily_streak ?? 0;
+  const claimedToday = player?.daily_last_claimed === new Date().toISOString().slice(0, 10);
 
   const PROFILE_ITEMS = [
     { id: "profile", icon: "User", title: "Профиль", sub: "Данные игрока" },
+    { id: "ton", icon: "Wallet", title: "Подключай свой кошелёк TON", sub: "Привязка криптокошелька" },
     { id: "friends", icon: "Users", title: "Приглашай друзей", sub: "Реферальная программа" },
+    { id: "daily", icon: "CalendarCheck", title: "Ежедневный вход", sub: "Бонус за активность" },
     { id: "leaders", icon: "BarChart2", title: "Таблица лидеров", sub: "Отслеживай свой рейтинг" },
+    { id: "purchases", icon: "ShoppingCart", title: "Мои покупки", sub: "Бустеры и прочие покупки" },
     { id: "history", icon: "Notebook", title: "История розыгрышей", sub: "Хронология событий игрока" },
   ];
+
+  const saveProfile = async () => {
+    if (!player) return;
+    if (!profileData.firstName.trim()) { toast.error("Введите имя"); return; }
+    setSavingProfile(true);
+    try {
+      const res = await fetch(UPDATE_PROFILE_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          player_id: player.id,
+          first_name: profileData.firstName.trim(),
+          last_name: profileData.lastName.trim() || null,
+          city: profileData.city.trim() || null,
+          pvz_address: profileData.pvz.trim() || null,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok || data.error) { toast.error(data.error || "Ошибка сохранения"); return; }
+      onPlayerUpdate({ ...player, first_name: data.first_name, last_name: data.last_name, city: data.city, pvz_address: data.pvz_address });
+      toast.success("Данные сохранены!");
+      setOpenSheet(null);
+    } catch {
+      toast.error("Ошибка соединения");
+    } finally {
+      setSavingProfile(false);
+    }
+  };
 
   return (
     <div className="flex flex-col gap-2 overflow-y-auto animate-fade-in">
       {PROFILE_ITEMS.map((item) => (
         <button
           key={item.id}
-          onClick={() => setOpenSheet(item.id)}
+          onClick={() => {
+            if (item.id === "profile") {
+              setProfileData({ firstName: player?.first_name || "", lastName: player?.last_name || "", city: player?.city || "", pvz: player?.pvz_address || "" });
+            }
+            setOpenSheet(item.id);
+          }}
           className="app-btn w-full flex items-center gap-3 px-4 py-3.5 active:scale-[0.98] transition-transform text-left shrink-0"
         >
           <div className="w-10 h-10 rounded-xl bg-white/15 flex items-center justify-center shrink-0">
@@ -78,37 +137,20 @@ const ProfileScreen = ({ balance, history, player, onLoginClick, onLogout }: Pro
             {item.id === "history" && history.length > 0 && (
               <span className="text-xs bg-white/20 rounded-full px-2 py-0.5">{history.length}</span>
             )}
+            {item.id === "daily" && !claimedToday && (
+              <span className="w-2 h-2 rounded-full bg-green-400" />
+            )}
             <Icon name="ChevronRight" size={18} className="text-white/50 shrink-0" />
           </div>
         </button>
       ))}
 
-      {/* Кнопка входа/выхода */}
-      {!player ? (
-        <button
-          onClick={onLoginClick}
-          className="w-full py-3 rounded-xl font-bold text-sm active:scale-95 transition-transform flex items-center justify-center gap-2 mt-2"
-          style={{ background: "#0088cc" }}
-        >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12L8.32 13.617l-2.96-.924c-.643-.204-.657-.643.136-.953l11.57-4.461c.537-.194 1.006.131.828.942z"/></svg>
-          Войти через Telegram
-        </button>
-      ) : (
-        <button
-          onClick={onLogout}
-          className="w-full py-2.5 rounded-xl bg-white/10 border border-white/20 text-sm text-white/60 active:scale-95 transition-transform mt-2"
-        >
-          Выйти из аккаунта
-        </button>
-      )}
-
       {/* ===== PROFILE SHEET ===== */}
       <BottomSheet open={openSheet === "profile"} onClose={() => setOpenSheet(null)} title="Профиль">
         <div className="flex flex-col gap-4">
           <div className="flex items-center gap-4">
-            {player?.avatar_url ? (
-              <img src={player.avatar_url} alt={displayName}
-                className="w-16 h-16 rounded-full border-2 border-white/40 object-cover shrink-0 shadow-lg" />
+            {player?.photo_url ? (
+              <img src={player.photo_url} alt={displayName} className="w-16 h-16 rounded-full border-2 border-white/40 object-cover shrink-0 shadow-lg" />
             ) : (
               <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#9b8ecf] to-[#7060b0] border-2 border-white/40 flex items-center justify-center font-display font-black text-2xl text-white shadow-lg shrink-0">
                 {avatarLetter}
@@ -116,18 +158,16 @@ const ProfileScreen = ({ balance, history, player, onLoginClick, onLogout }: Pro
             )}
             <div className="flex-1">
               <div className="font-bold text-base">{displayName}</div>
-              {player?.telegram_id && (
-                <div className="text-white/60 text-sm">TG ID: {player.telegram_id}</div>
-              )}
+              {player?.username && <div className="text-white/60 text-sm">@{player.username}</div>}
             </div>
           </div>
-
           <div className="grid grid-cols-3 gap-2">
             {[
               { label: "Баланс", value: `${balance.toLocaleString("ru")} ₩` },
               { label: "Игр", value: gamesPlayed },
               { label: "Побед", value: gamesWon },
               { label: "Поражений", value: gamesLost },
+              { label: "Серия дней", value: `${streak} д.` },
               { label: "ID", value: `#${player?.id ?? "—"}` },
             ].map((s) => (
               <div key={s.label} className="app-card-inner p-2.5 text-center">
@@ -136,6 +176,43 @@ const ProfileScreen = ({ balance, history, player, onLoginClick, onLogout }: Pro
               </div>
             ))}
           </div>
+          <div className="text-xs text-white/50 font-semibold uppercase tracking-wide">Данные для доставки</div>
+          <input value={profileData.firstName} onChange={(e) => setProfileData(p => ({ ...p, firstName: e.target.value }))}
+            placeholder="Имя" className="bg-white/10 rounded-xl px-3 py-2.5 text-sm outline-none border border-white/20 focus:border-white/50 transition-colors" />
+          <input value={profileData.lastName} onChange={(e) => setProfileData(p => ({ ...p, lastName: e.target.value }))}
+            placeholder="Фамилия" className="bg-white/10 rounded-xl px-3 py-2.5 text-sm outline-none border border-white/20 focus:border-white/50 transition-colors" />
+          <input value={profileData.city} onChange={(e) => setProfileData(p => ({ ...p, city: e.target.value }))}
+            placeholder="Город" className="bg-white/10 rounded-xl px-3 py-2.5 text-sm outline-none border border-white/20 focus:border-white/50 transition-colors" />
+          <input value={profileData.pvz} onChange={(e) => setProfileData(p => ({ ...p, pvz: e.target.value }))}
+            placeholder="Адрес пункта выдачи WB" className="bg-white/10 rounded-xl px-3 py-2.5 text-sm outline-none border border-white/20 focus:border-white/50 transition-colors" />
+          <button onClick={saveProfile} disabled={savingProfile}
+            className="w-full py-3 rounded-xl bg-green-600 border border-green-400/50 font-bold text-sm active:scale-95 transition-transform disabled:opacity-60">
+            {savingProfile ? "Сохраняю..." : "Сохранить"}
+          </button>
+        </div>
+      </BottomSheet>
+
+      {/* ===== DAILY SHEET ===== */}
+      <BottomSheet open={openSheet === "daily"} onClose={() => setOpenSheet(null)} title="Ежедневный вход">
+        <div className="flex flex-col gap-4">
+          <div className="text-center text-sm text-white/70">Серия: <span className="font-bold text-yellow-300">{streak} дней</span></div>
+          <div className="grid grid-cols-4 gap-2">
+            {DAILY_REWARDS.map((r, i) => (
+              <div key={i} className={`app-card-inner p-3 flex flex-col items-center gap-1 ${i < streak ? "border border-green-400/40 bg-green-500/10" : ""} ${i === streak && !claimedToday ? "border border-yellow-400/60 bg-yellow-400/10" : ""}`}>
+                <div className="text-lg font-bold text-yellow-300">{typeof r === "number" ? `+${r}` : r}</div>
+                <div className="text-[9px] text-white/50">День {i + 1}</div>
+                {i < streak && <div className="text-green-400 text-xs">✓</div>}
+              </div>
+            ))}
+          </div>
+          {claimedToday ? (
+            <div className="text-center text-white/50 text-sm">Уже получено сегодня. Возвращайся завтра!</div>
+          ) : (
+            <button onClick={() => { toast.success("Бонус получен!"); setOpenSheet(null); }}
+              className="w-full py-3 rounded-xl bg-yellow-500/30 border border-yellow-400/50 font-bold text-sm active:scale-95 transition-transform">
+              Получить бонус дня {streak + 1}
+            </button>
+          )}
         </div>
       </BottomSheet>
 
@@ -154,19 +231,6 @@ const ProfileScreen = ({ balance, history, player, onLoginClick, onLogout }: Pro
               </div>
             </div>
           ))}
-        </div>
-      </BottomSheet>
-
-      {/* ===== FRIENDS SHEET ===== */}
-      <BottomSheet open={openSheet === "friends"} onClose={() => setOpenSheet(null)} title="Приглашай друзей">
-        <div className="flex flex-col gap-3 text-center">
-          <div className="text-4xl">👥</div>
-          <div className="font-bold text-lg">Реферальная программа</div>
-          <div className="text-sm text-white/70">Приглашай друзей и получай бонусы за каждого нового игрока.</div>
-          <button onClick={() => { toast("Скоро!"); setOpenSheet(null); }}
-            className="w-full py-3 rounded-xl bg-blue-600/60 border border-blue-400/40 font-bold text-sm active:scale-95 transition-transform">
-            Скоро
-          </button>
         </div>
       </BottomSheet>
 
@@ -191,6 +255,33 @@ const ProfileScreen = ({ balance, history, player, onLoginClick, onLogout }: Pro
               </div>
             ))
           )}
+        </div>
+      </BottomSheet>
+
+      {/* ===== TON SHEET ===== */}
+      <BottomSheet open={openSheet === "ton"} onClose={() => setOpenSheet(null)} title="Кошелёк TON">
+        <div className="flex flex-col gap-3 text-center">
+          <div className="text-4xl">💎</div>
+          <div className="text-sm text-white/70">Привязка TON-кошелька для вывода призов — скоро!</div>
+          <button onClick={() => setOpenSheet(null)} className="w-full py-3 rounded-xl bg-white/10 border border-white/20 font-bold text-sm">Закрыть</button>
+        </div>
+      </BottomSheet>
+
+      {/* ===== PURCHASES SHEET ===== */}
+      <BottomSheet open={openSheet === "purchases"} onClose={() => setOpenSheet(null)} title="Мои покупки">
+        <div className="flex flex-col gap-3 text-center">
+          <div className="text-4xl">🛒</div>
+          <div className="text-sm text-white/70">История покупок бустеров появится здесь.</div>
+          <button onClick={() => setOpenSheet(null)} className="w-full py-3 rounded-xl bg-white/10 border border-white/20 font-bold text-sm">Закрыть</button>
+        </div>
+      </BottomSheet>
+
+      {/* ===== FRIENDS SHEET ===== */}
+      <BottomSheet open={openSheet === "friends"} onClose={() => setOpenSheet(null)} title="Приглашай друзей">
+        <div className="flex flex-col gap-3 text-center">
+          <div className="text-4xl">👥</div>
+          <div className="text-sm text-white/70">Реферальная программа — скоро!</div>
+          <button onClick={() => setOpenSheet(null)} className="w-full py-3 rounded-xl bg-white/10 border border-white/20 font-bold text-sm">Закрыть</button>
         </div>
       </BottomSheet>
     </div>

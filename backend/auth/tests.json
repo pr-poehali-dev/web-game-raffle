@@ -1,12 +1,12 @@
 {
   "tests": [
     {
-      "name": "Auth without initData returns demo player",
+      "name": "Auth without initData returns 403",
       "method": "POST",
       "path": "/",
       "body": {},
-      "expectedStatus": 200,
-      "expectedBody": {"player": {}},
+      "expectedStatus": 403,
+      "expectedBody": {"error": "No Telegram context"},
       "bodyMatcher": "partial"
     }
   ]

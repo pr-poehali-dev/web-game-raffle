@@ -5,8 +5,8 @@ import hashlib
 from urllib.parse import parse_qsl, unquote
 import psycopg2
 
-
 SCHEMA = os.environ.get("MAIN_DB_SCHEMA", "public")
+
 
 def verify_tg_init_data(init_data: str, bot_token: str) -> dict | None:
     """Проверяет подпись Telegram initData и возвращает данные пользователя."""
@@ -50,11 +50,10 @@ def handler(event: dict, context) -> dict:
 
     body = json.loads(event.get("body") or "{}")
     init_data = body.get("initData", "")
-    bot_token = os.environ.get("TG_BOT_TOKEN", "")
+    bot_token = os.environ.get("TG_BOT_TOKEN", "") or os.environ.get("TELEGRAM_BOT_TOKEN", "")
 
     tg_user = None
 
-    # В режиме разработки (без токена или пустой initData) — пропускаем верификацию
     if bot_token and init_data:
         tg_user = verify_tg_init_data(init_data, bot_token)
         if tg_user is None:
@@ -64,9 +63,7 @@ def handler(event: dict, context) -> dict:
                 "body": json.dumps({"error": "Invalid initData signature"}),
             }
     elif init_data:
-        # Попробуем распарсить без проверки (dev-режим)
         try:
-            from urllib.parse import parse_qsl, unquote
             params = dict(parse_qsl(init_data, keep_blank_values=True))
             user_json = params.get("user")
             if user_json:
@@ -75,13 +72,11 @@ def handler(event: dict, context) -> dict:
             pass
 
     if not tg_user:
-        # Тестовый пользователь если initData отсутствует (браузерная превью)
-        tg_user = {
-            "id": 0,
-            "first_name": "Demo",
-            "last_name": "",
-            "username": "demo_player",
-            "photo_url": None,
+        # Нет initData — не из Telegram
+        return {
+            "statusCode": 403,
+            "headers": cors,
+            "body": json.dumps({"error": "No Telegram context"}),
         }
 
     tg_id = tg_user.get("id", 0)
@@ -95,7 +90,6 @@ def handler(event: dict, context) -> dict:
 
     is_new = False
 
-    # Ищем игрока
     cur.execute(
         f"SELECT id, tg_id, username, first_name, last_name, photo_url, balance, games_played, games_won, daily_streak, daily_last_claimed, city, pvz_address, created_at FROM {SCHEMA}.players WHERE tg_id = %s",
         (tg_id,),
@@ -104,7 +98,6 @@ def handler(event: dict, context) -> dict:
 
     if row is None:
         is_new = True
-        # Регистрируем нового игрока
         cur.execute(
             f"""
             INSERT INTO {SCHEMA}.players
@@ -117,7 +110,6 @@ def handler(event: dict, context) -> dict:
         )
         row = cur.fetchone()
     else:
-        # Обновляем данные из TG (имя/фото могли измениться)
         cur.execute(
             f"""
             UPDATE {SCHEMA}.players
@@ -136,7 +128,6 @@ def handler(event: dict, context) -> dict:
             "daily_last_claimed", "city", "pvz_address", "created_at"]
     player = dict(zip(cols, row))
 
-    # Сериализуем даты
     if player.get("daily_last_claimed"):
         player["daily_last_claimed"] = str(player["daily_last_claimed"])
     if player.get("created_at"):
