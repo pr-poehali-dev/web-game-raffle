@@ -6,7 +6,8 @@ import ProfileScreen from "@/components/ProfileScreen";
 import { toast } from "sonner";
 
 const WB_PRODUCT_URL = "https://functions.poehali.dev/c57573d7-b418-41d1-a1ea-735c2499505f";
-const AUTH_URL = "https://functions.poehali.dev/de945251-8b77-43d2-bef3-d533289095eb";
+const TELEGRAM_BOT_USERNAME = "wildwheelbot";
+const TELEGRAM_AUTH_URL = "https://functions.poehali.dev/78b72379-2a23-4fec-a35b-b31afad8cdc4";
 
 type Tab = "profile" | "game" | "shop";
 type GamePhase = "idle" | "spinning" | "result";
@@ -88,18 +89,10 @@ const POPULAR_LOTS: Lot[] = [
 
 type Player = {
   id: number;
-  tg_id: number;
-  username: string | null;
-  first_name: string;
-  last_name: string | null;
-  photo_url: string | null;
-  balance: number;
-  games_played: number;
-  games_won: number;
-  daily_streak: number;
-  daily_last_claimed: string | null;
-  city: string | null;
-  pvz_address: string | null;
+  telegram_id: string | null;
+  name: string | null;
+  avatar_url: string | null;
+  email: string | null;
 };
 
 const Index = () => {
@@ -120,35 +113,42 @@ const Index = () => {
   const [player, setPlayer] = useState<Player | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
   const [showWelcome, setShowWelcome] = useState(false);
-  const [isNewPlayer, setIsNewPlayer] = useState(false);
 
-  // balance derived from player, but can be updated optimistically
-  const [balance, setBalance] = useState(0);
+  // balance — локальный счётчик WCOIN
+  const [balance, setBalance] = useState(1000);
+
+  const loginViaTelegram = () => {
+    window.open(`https://t.me/${TELEGRAM_BOT_USERNAME}?start=web_auth`, "_blank");
+  };
+
+  const logout = () => {
+    const refreshToken = localStorage.getItem("refresh_token");
+    if (refreshToken) {
+      fetch(`${TELEGRAM_AUTH_URL}?action=logout`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ refresh_token: refreshToken }),
+      }).catch(() => {});
+    }
+    localStorage.removeItem("access_token");
+    localStorage.removeItem("refresh_token");
+    localStorage.removeItem("tg_user");
+    setPlayer(null);
+    setShowWelcome(false);
+  };
 
   useEffect(() => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const tg = (window as unknown as Record<string, any>).Telegram?.WebApp;
-    if (tg) { tg.ready(); tg.expand(); }
-
-    const initData = tg?.initData || "";
-
-    fetch(AUTH_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ initData }),
-    })
-      .then((r) => r.json())
-      .then((data) => {
-        const p: Player = data.player;
+    const stored = localStorage.getItem("tg_user");
+    if (stored) {
+      try {
+        const p: Player = JSON.parse(stored);
         setPlayer(p);
-        setBalance(p.balance);
-        if (data.is_new) {
-          setIsNewPlayer(true);
-          setShowWelcome(true);
-        }
-      })
-      .catch(() => toast.error("Ошибка подключения"))
-      .finally(() => setAuthLoading(false));
+        setShowWelcome(true);
+      } catch {
+        localStorage.removeItem("tg_user");
+      }
+    }
+    setAuthLoading(false);
   }, []);
 
   // Result state
@@ -315,11 +315,8 @@ const Index = () => {
     );
   };
 
-  const displayName = player
-    ? [player.first_name, player.last_name].filter(Boolean).join(" ")
-    : "…";
-  const displayUsername = player?.username ? `@${player.username}` : "";
-  const avatarLetter = player?.first_name?.[0]?.toUpperCase() || "?";
+  const displayName = player?.name || (player ? "Игрок" : "…");
+  const avatarLetter = displayName[0]?.toUpperCase() || "?";
 
   if (authLoading) {
     return (
@@ -336,37 +333,46 @@ const Index = () => {
     <div className="min-h-screen app-bg flex justify-center overflow-hidden">
       <div className="w-full max-w-md flex flex-col h-screen text-white">
 
-        {/* WELCOME POPUP */}
-        {showWelcome && (
+        {/* LOGIN POPUP — если не авторизован */}
+        {!player && (
+          <div className="fixed inset-0 z-50 flex items-end justify-center pb-6 px-4">
+            <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
+            <div className="relative w-full max-w-sm rounded-2xl p-6 flex flex-col gap-4 text-center"
+              style={{ background: "linear-gradient(135deg, hsl(214,60%,52%), hsl(218,65%,44%))", border: "1.5px solid hsl(210,65%,65%)" }}>
+              <div className="text-5xl">🎰</div>
+              <div className="font-display font-black text-2xl">Wild Wheel</div>
+              <div className="text-sm text-white/80">
+                Войди через Telegram чтобы начать играть и сохранять результаты
+              </div>
+              <button
+                onClick={loginViaTelegram}
+                className="w-full py-3 rounded-xl font-bold text-sm active:scale-95 transition-transform flex items-center justify-center gap-2"
+                style={{ background: "#0088cc" }}
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12L8.32 13.617l-2.96-.924c-.643-.204-.657-.643.136-.953l11.57-4.461c.537-.194 1.006.131.828.942z"/></svg>
+                Войти через Telegram
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* WELCOME POPUP — после входа */}
+        {showWelcome && player && (
           <div className="fixed inset-0 z-50 flex items-end justify-center pb-6 px-4">
             <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
             <div className="relative w-full max-w-sm rounded-2xl p-6 flex flex-col gap-4 text-center"
               style={{ background: "linear-gradient(135deg, hsl(214,60%,52%), hsl(218,65%,44%))", border: "1.5px solid hsl(210,65%,65%)" }}>
-              <div className="text-5xl">{isNewPlayer ? "🎉" : "👋"}</div>
-              <div className="font-display font-black text-2xl">
-                {isNewPlayer ? "Добро пожаловать!" : `Привет, ${player?.first_name}!`}
+              <div className="text-5xl">👋</div>
+              <div className="font-display font-black text-2xl">Привет, {player.name}!</div>
+              <div className="text-sm text-white/80">
+                Ты вошёл через Telegram. Тебе начислено <span className="font-bold text-yellow-300">1 000 ₩</span> на старт.
               </div>
-              {isNewPlayer && (
-                <div className="text-sm text-white/80">
-                  Привет, <span className="font-bold text-yellow-300">{player?.first_name}</span>!<br />
-                  Тебе начислено <span className="font-bold text-yellow-300">1 000 ₩</span> на старт.<br />
-                  Заполни профиль чтобы получать выигрыши.
-                </div>
-              )}
-              <div className="flex flex-col gap-2 mt-1">
-                <button
-                  onClick={() => { setShowWelcome(false); setTab("profile"); }}
-                  className="w-full py-3 rounded-xl bg-green-600 border border-green-400/50 font-bold text-sm active:scale-95 transition-transform"
-                >
-                  Перейти в профиль
-                </button>
-                <button
-                  onClick={() => setShowWelcome(false)}
-                  className="w-full py-2.5 rounded-xl bg-white/10 border border-white/20 text-sm text-white/70 active:scale-95 transition-transform"
-                >
-                  Отложить
-                </button>
-              </div>
+              <button
+                onClick={() => setShowWelcome(false)}
+                className="w-full py-3 rounded-xl bg-green-600 border border-green-400/50 font-bold text-sm active:scale-95 transition-transform"
+              >
+                Играть!
+              </button>
             </div>
           </div>
         )}
@@ -374,14 +380,17 @@ const Index = () => {
         {/* HEADER */}
         <header className="flex items-center justify-between px-4 pt-3 pb-2 shrink-0">
           <div className="flex items-center gap-2.5">
-            {player?.photo_url ? (
+            {player?.avatar_url ? (
               <img
-                src={player.photo_url}
+                src={player.avatar_url}
                 alt={displayName}
                 className="w-12 h-12 rounded-full border-2 border-white/40 object-cover shrink-0 shadow-lg"
               />
             ) : (
-              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#9b8ecf] to-[#7060b0] border-2 border-white/40 flex items-center justify-center font-display font-bold text-xl text-white shadow-lg shrink-0">
+              <div
+                onClick={!player ? loginViaTelegram : undefined}
+                className="w-12 h-12 rounded-full bg-gradient-to-br from-[#9b8ecf] to-[#7060b0] border-2 border-white/40 flex items-center justify-center font-display font-bold text-xl text-white shadow-lg shrink-0 cursor-pointer"
+              >
                 {avatarLetter}
               </div>
             )}
@@ -389,8 +398,10 @@ const Index = () => {
               <div className="font-display font-black text-[15px] text-white drop-shadow-md leading-tight">
                 {displayName}
               </div>
-              {displayUsername && (
-                <div className="text-[11px] text-white/60 leading-tight">{displayUsername}</div>
+              {player && (
+                <button onClick={logout} className="text-[10px] text-white/40 leading-tight hover:text-white/70 transition-colors">
+                  Выйти
+                </button>
               )}
             </div>
           </div>
@@ -636,10 +647,8 @@ const Index = () => {
               balance={balance}
               history={history}
               player={player}
-              onPlayerUpdate={(updated) => {
-                setPlayer(updated);
-                setBalance(updated.balance);
-              }}
+              onLoginClick={loginViaTelegram}
+              onLogout={logout}
             />
           )}
 
